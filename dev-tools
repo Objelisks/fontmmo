@@ -1,0 +1,2 @@
+watchify main.js -o static/compiled.js &
+static-server ./static
