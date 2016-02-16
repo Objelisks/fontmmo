@@ -1,7 +1,7 @@
 var UP = new THREE.Vector3(0,0,1);
 var FORWARD = new THREE.Vector3(0,1,0);
-var moveSpeed = 5.0;
-var cameraOffset = new THREE.Vector3(0,-8,15);
+var moveSpeed = 10.0;
+var cameraOffset = new THREE.Vector3(0,-10,20);
 
 var keyboard = {};
 

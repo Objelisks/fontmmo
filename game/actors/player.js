@@ -7,6 +7,7 @@ module.exports.createPlayer = function(opt) {
   player.receiveShadow = true;
   player.position.z = 0.5;
   player.parts = [];
+  player.addPart = (p) => player.parts.push(p);
 
   return player;
 }
