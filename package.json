@@ -1,0 +1,22 @@
+{
+  "name": "fontmmo",
+  "version": "1.0.0",
+  "description": "font mmo",
+  "main": "static/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Objelisks/fontmmo.git"
+  },
+  "author": "Objelisks",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Objelisks/fontmmo/issues"
+  },
+  "devDependencies": {
+    "static-server": "^2.0.1",
+    "watchify": "^3.7.0"
+  }
+}
