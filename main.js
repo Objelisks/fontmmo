@@ -1,84 +1,72 @@
-//var classes = require('./classes/classes.js');
-//var world = require('./world/world.js');
-//var network = require('./net.js');
-
-var players = require('./game/actors/player.js');
-var chunks = require('./game/world/chunk.js');
-var controls = require('./game/control/keyboard.js');
-
-var world = {};
+var screens = require('./game/screens/screens.js');
 
 var width = 1024,
     height = 768;
 
-world.scene = new THREE.Scene();
-world.camera = new THREE.PerspectiveCamera(60, width/height, 1, 1000);
-world.camera.position.set(0,-10,10);
-world.camera.lookAt(new THREE.Vector3(0,0,0));
-
-var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(5,-5,10);
-dirLight.castShadow = true;
-dirLight.shadow.camera.near = 1;
-dirLight.shadow.camera.far = 1000;
-dirLight.shadow.camera.left = -25;
-dirLight.shadow.camera.right = 25;
-dirLight.shadow.camera.top = 25;
-dirLight.shadow.camera.bottom = -25;
-dirLight.shadow.radius = 2;
-dirLight.shadow.mapSize.set(1024, 1024);
-world.scene.add(dirLight);
-var ambLight = new THREE.AmbientLight(0x808080);
-world.scene.add(ambLight);
-
-world.renderer = new THREE.WebGLRenderer({
+var renderer = new THREE.WebGLRenderer({
   antialias: true
 });
-world.renderer.setSize(width, height);
-world.renderer.shadowMap.enabled = true;
-world.renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.setSize(width, height);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
-document.body.appendChild(world.renderer.domElement);
+document.body.appendChild(renderer.domElement);
 
-var player = players.createPlayer();
-player.addPart(controls.createMainController(player, world.camera));
-player.add(dirLight.shadow.camera);
-world.scene.add(player);
-
-var chunk = chunks.createChunk({});
-world.scene.add(chunk);
+// set starting screen and initialize
+var activeScreen = "game";
+screens[activeScreen].create({character: {}});
 
 var clock = new THREE.Clock(true);
 var render = function() {
+  var screen = screens[activeScreen];
   requestAnimationFrame(render);
-  world.renderer.render(world.scene, world.camera);
+
+  renderer.render(screen.scene, screen.camera);
   var delta = clock.getDelta();
-  player.parts.forEach(part => part.update(delta));
+  screen.update(delta);
+  // switch screens if needed
 }
 render();
 
-// get canvas
-// start render loop
-// run create character
-// handle input async
-// handle net async
-
-
 /*
-
-standard font - quirk.ttf
 
 screens
   press start
   chargen
-  main screen
+  charselect
+  game
 
 controls
   arrow keys
   qwer menus
-    quick
-    wield
-    evoke
-    relate
+    (Q)uick-strike / (U)pset
+    (W)itchcraft / (I)nvocate
+    (E)mpathy / (O)ral
+    (R)eceptacles / (P)ockets
+
+Pugilist
+  Like a cleric, but fists
+Occultist
+  Symbols, summon demons
+Alchemist
+  Craft potions
+Artificier
+  Craft tools
+Psychopomp
+  Sees dead people
+Runner
+  Hack into servers, reprogram things
+Cryomancer
+  Deploy ice, defend servers
+Gemwarden
+  Destroy gems, remove them from seats of power
+Gemwarrior
+  Defend gems bring them to seats of power
+Telemancer
+  Teleportation and transportation magicks
+Gunslinger
+  Guns, grit
+Runeomancer
+  Writs runes, lays traps
 
 */

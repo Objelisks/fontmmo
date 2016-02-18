@@ -1,2 +1,3 @@
 watchify main.js -o static/compiled.js &
-static-server ./static
+static-server ./static &
+node server/server.js
