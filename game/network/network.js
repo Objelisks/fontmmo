@@ -4,7 +4,7 @@ var actor = require('../actors/actor.js');
 var local_id = null;
 var playerName = 'objelisks';
 
-var socket = io('http://localhost');
+var socket = io('localhost');
 socket.on('connect', function() {
   socket.emit('hello', playerName, function(id) {
     local_id = id;
@@ -46,7 +46,7 @@ module.exports.createNetReceiver = function(object, id) {
   return {
     update: function(delta) {
       if(object.netTarget) {
-        object.position.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.5);
+        object.position.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.1);
         //object.rotation.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.5);
       }
     },

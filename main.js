@@ -16,12 +16,15 @@ document.body.appendChild(renderer.domElement);
 var activeScreen = "game";
 screens[activeScreen].create({character: {}});
 
+// main render, update loop
 var clock = new THREE.Clock(true);
 var render = function() {
   var screen = screens[activeScreen];
   requestAnimationFrame(render);
 
   renderer.render(screen.scene, screen.camera);
+
+  // TODO: decouple update from rendering
   var delta = clock.getDelta();
   screen.update(delta);
   // switch screens if needed
