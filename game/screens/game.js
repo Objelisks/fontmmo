@@ -43,9 +43,17 @@ var addToScene = function(obj) {
   }
 }
 
+var removeFromScene = function(obj) {
+  screen.scene.remove(obj);
+  if(obj.isActor) {
+    screen.actors.splice(screen.actors.indexOf(obj), 1);
+  }
+}
+
 screen.create = function(data) {
   initializeScene(screen);
   network.setSceneAddCallback(addToScene);
+  network.setSceneRemoveCallback(removeFromScene);
 
   var player = actor.create(data.character);
   player.addPart(controls.createMainController(player, screen.camera));

@@ -57,22 +57,36 @@ module.exports.createNetReceiver = function(object, id) {
   }
 }
 
-var sceneAddCallback;
+var sceneAddCallback,
+    sceneRemoveCallback;
 
 module.exports.setSceneAddCallback = function(sceneAdd) {
   sceneAddCallback = sceneAdd;
 }
+module.exports.setSceneRemoveCallback = function(sceneRemove) {
+  sceneRemoveCallback = sceneRemove;
+}
 
+// TODO: use data to customize actor
 var createFromNetData = function(data) {
   var obj = actor.create({});
-  obj.name = data.name;
   return obj;
 }
 
-// {id, name}
+// {ids}
 socket.on('new', function(data) {
-  var obj = createFromNetData(data);
-  obj.position.z = 0.5;
-  obj.addPart(module.exports.createNetReceiver(obj, data.id));
-  sceneAddCallback(obj);
+  data.ids.forEach(function(id) {
+    if(id === local_id) return;
+    var obj = createFromNetData(id);
+    obj.addPart(module.exports.createNetReceiver(obj, id));
+    sceneAddCallback(obj);
+  });
+});
+
+// {ids}
+socket.on('leave', function(data) {
+  data.ids.forEach(function(id) {
+    if(id === local_id) return;
+    sceneRemoveCallback(idMap[id]);
+  });
 });
