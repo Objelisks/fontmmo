@@ -1,4 +1,4 @@
-var io = require('socket.io')(80);
+var io = require('socket.io')();
 
 // generate increasing ids
 // might need to store this in a file later if persistence is needed
@@ -45,3 +45,5 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('leave', {ids: [socket.meta.id]});
   });
 });
+
+io.listen(3000);

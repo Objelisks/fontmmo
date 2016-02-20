@@ -4,7 +4,8 @@ var actor = require('../actors/actor.js');
 var local_id = null;
 var playerName = 'objelisks';
 
-var socket = io('localhost');
+var socket = io(window.location.hostname + ':3000');
+console.log(window.location.hostname + ':3000')
 socket.on('connect', function() {
   socket.emit('hello', playerName, function(id) {
     local_id = id;
@@ -23,7 +24,7 @@ module.exports.createNetUpdate = function(player) {
         socket.emit('move', {id: local_id, x: player.position.x, y: player.position.y, f: player.rotation.z}, function(success) {
 
         });
-        // update to send input deltas
+        // TODO: update to send input deltas
         player.nextUpdate = now + updateSeparation;
       }
     }
