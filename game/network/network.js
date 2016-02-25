@@ -5,7 +5,7 @@ var local_id = null;
 var playerName = 'objelisks';
 
 var socket = io(window.location.hostname + ':3000');
-console.log(window.location.hostname + ':3000')
+
 socket.on('connect', function() {
   socket.emit('hello', playerName, function(id) {
     local_id = id;

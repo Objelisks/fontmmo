@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<body>
+  <svg>
+    <circle>
+  </svg>
+  <h3>Spec</h3>
+  <div id="spec"></div>
+  <h3>Stat</h3>
+  <div id="stat"></div>
+  <script src="../node_modules/socket.io-client/socket.io.js"></script>
+<script>
+/*
+  This is the server health monitor
+  shows currently connected server stats,
+  character gen stats, suspected haxxors
+*/
+var socket = io('http://localhost:4000');
+
+socket.on('connect', function(){});
+
+// static server information, does not update
+socket.on('spec', function(spec) {
+  console.log(spec);
+  document.getElementById('spec').innerText = JSON.stringify(spec, null, 4);
+});
+
+// dynamic server information, sent every 1000 ms
+socket.on('stat', function(stat) {
+  document.getElementById('stat').innerText = JSON.stringify(stat, null, 4);
+});
+</script>
+</body>
+</html>

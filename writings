@@ -1,0 +1,205 @@
+today's todo:
+
+have chunks load in as we approach edge of current chunks
+optimize as much as possible based on top down camera perspective
+update server to send chunks when player is near edge
+chunks contain static models, including terrain
+chunks have collision maps
+
+also the server monitor
+server health
+connection stats
+character creation stats
++graphs
+
+
+/*
+
+TODO LIST
+---------
+chunk loading, saving
+server serving chunks based on position
+client sending input delta instead of abs
+movement mechanics / collision
+chunk editor
+admin mode
+character creator
+character classes
+abilities
+ability effects / affects
+vaporwave
+
+11
+8+2+1
+
+screens
+  press start
+  chargen
+  charselect
+  game
+
+controls
+  arrow keys
+  qwer menus
+    (Q)uick-strike / (U)pset
+    (W)itchcraft / (I)nvocate
+    (E)mpathy / (O)ral
+    (R)eceptacles / (P)ockets
+
+
+classes
+-------
+
+  CONFLICT (mostly offensive) choose up to two (0, 1, 2)
+Pugilist - fists
+  Like a cleric, but fists, and not a cleric
+Occultist -
+  Symbols, summon demons, hexes
+Alchemist - thrown potions
+  Craft potions, thrown, splash
+
+  MAGICK (mostly utility)
+Telemancer
+  Teleportation and transportation magicks, blink, haste, slow
+Runeomancer
+  Writs runes, lays traps, programmatic, storage
+Biomancer
+  Grows plants, obstruction, growth (size)
+
+  IDK
+Astronomer
+Psychopomp
+Artificier
+
+  ANCIENT FEUD (choose one, no right answer)
+Gemwarden
+  Defend gems bring them to seats of power
+  Collect passive gem abilities from aided gems (lasts longer, esp if you can protect gems from warriors)
+Gemwarrior
+  Destroy gems, remove them from seats of power
+  Absorb gem abilities (stronger abilities, lasts shorter amount of time, have to get past wardens)
+Wanderer, Cartographer - neutral alliance
+  - explore the world, find useful information and trade it with those who seek it
+    -- find gem, sell location to gemwarden,warrior without getting involved
+    -- find mob cavern, trade location with levellers
+    -- create maps, trade maps
+
+
+
+options:
+  choose 1-2 conflict, 0-1 magjick, 0-1 feud
+
+combinations of classes: options
+combat / magic / allegiance
+Pug/Tele/Def -> ranged punches
+Alc/Bio/Cart -> grow chemicals free
+
+-> each combination gives special synthesis abilities
+
+abilities are useful in overworld as well as combat (see Golden Sun)
+
+
+terrain
+-------
+grid: 1bitmap texture gives collision map
+naturally adheres to grid
+non-playable area does not need to conform to grid
+  river might widen, but edges should cleanly fit grid edges
+  each subarea should give an interesting battle arena
+    break up with collidable objects
+
+FOREST ZONE
+  trees, bushs, small boulders, river, cool leafs shader
+
+MOUNTAIN ZONE
+  rocks, cliffs,
+
+
+
+
+world building
+--------------
+villages
+npcs
+neutral mobs (only in groups)
+chunky soft rocks
+world contains no metals
+  glass, wood, organic(vine, moss, grass), paper, rock(obsidian, crystal)
+  orthogonal high fantasy concept
+    can extend tech as far as possible minus metal
+    no nails (except wood/stone), swords(obsidian)
+    no tall structures, localized farming only
+    weapons: hand-to-hand, leather, wood, stone, obsidian(rare), magical
+    armor: leather, wood, magical
+goals:
+  GEMWAR
+  TOWNBUILD??
+
+
+inspiro
+-------
+  Grimes
+  Weird Twitter
+  Codex Seraphinianus
+  Steven Universe
+  Cool Rocks
+  North of Reality
+
+
+
+
+chunks are 200x200 square areas
+server needs to send data
+chunk data:
+  heightmap: data64
+  objects: [{id, pos, rot}]
+client then needs to grab all the referenced objects
+
+terrain memory cleanup clientside
+  worst case scenario, client has four chunks visible
+  keep current chunk + 3 nearest chunks
+
+
+flat ground + object instances
+  collision for objects only
+
+first thing is:
+  get server to send object collection
+
+server collision
+
+
+level editor (clientside)
+  press ~ to toggle
+  a - spawn instance of current object
+  z - delete nearest object
+  s/d - cycle current selected object
+
+editor (serverside)
+  save: saves passed chunk data
+
+
+
+
+
+game actions
+  explore
+    realtime movement in 360 degree directions
+  conflict
+    enter combat -> grid based movement, tactics like gameplay, turn based actions with time limit
+  interact
+    talk to npcs, use abilities on terrain
+
+exploration and conflict are separate, so that during exploration, we don't need
+to simulate other players (their actions cannot have an effect on local player).
+During conflict, we have lock-step interaction, but the interaction is turn based
+and not real time
+
+
+
+decisions:
+preemptive chunk sending, player asks for chunks
+tile based vs polygon based collision maps
+
+
+TODO: rate limiting on all apis per ip (not connection)

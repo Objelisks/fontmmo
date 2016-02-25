@@ -4,7 +4,7 @@ var grassMaterial = new THREE.MeshStandardMaterial({ color: 0x63B76D, roughness:
 module.exports.createChunk = function(opt) {
   var chunk = new THREE.Object3D();
 
-  chunk.terrain = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), grassMaterial);
+  chunk.terrain = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), grassMaterial);
   chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 

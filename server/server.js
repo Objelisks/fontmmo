@@ -1,4 +1,25 @@
 var io = require('socket.io')();
+var statServer = require('socket.io')();
+var StaticServer = require('static-server');
+var os = require('os');
+
+/* deploy file server */
+var server = new StaticServer({
+  rootPath:'./static/',
+  port: 9080
+});
+server.start();
+
+/* deploy statistics server */
+var staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
+var dynamicStats = ['freemem', 'loadavg', 'uptime'];
+
+statServer.on('connection', function(socket) {
+  socket.emit('spec', staticStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {}));
+  // one second updates
+  setInterval(() => socket.emit('stat', dynamicStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {})), 1000)
+});
+statServer.listen(4000);
 
 // generate increasing ids
 // might need to store this in a file later if persistence is needed
@@ -11,6 +32,7 @@ var genId = function(type) {
   return ids[type];
 }
 
+/* deploy game server */
 io.on('connection', function(socket) {
   // store per-client info here
   socket.meta = {};
