@@ -4,7 +4,6 @@ var inputMethods = [keyboard];
 // TODO: gamepad input method
 // TODO: touch input method
 
-
 module.exports.isDown = function(key) {
     return inputMethods.some((method) => method.isDown(key));
 }
