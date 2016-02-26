@@ -1,21 +1,25 @@
 var actor = require('../actors/actor.js');
 var chunks = require('../world/chunk.js');
-var controls = require('../control/keyboard.js');
+var input = require('../control/input.js');
 var network = require('../network/network.js');
+var modes = require('./modes/modes.js');
 
+var state = require('../state.js');
+
+var activeMode;
 var screen = {};
 
 var width = 1024,
     height = 768;
 
-var initializeScene = function(screen) {
+var initializeState = function() {
   var scene = new THREE.Scene();
-  screen.scene = scene;
+  state.scene = scene;
 
   var camera = new THREE.PerspectiveCamera(60, width/height, 1, 1000);
   camera.position.set(0,-10,10);
   camera.lookAt(new THREE.Vector3(0,0,0));
-  screen.camera = camera;
+  state.camera = camera;
 
   var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
   dirLight.position.set(5,-5,10);
@@ -28,41 +32,46 @@ var initializeScene = function(screen) {
   dirLight.shadow.camera.bottom = -25;
   dirLight.shadow.mapSize.set(1024, 1024);
   scene.add(dirLight);
-  screen.light = dirLight;
+  state.light = dirLight;
 
   var ambLight = new THREE.AmbientLight(0x808080);
   scene.add(ambLight);
 
-  screen.actors = [];
+  state.actors = [];
 }
 
 var addToScene = function(obj) {
-  screen.scene.add(obj);
+  state.scene.add(obj);
   if(obj.isActor) {
-    screen.actors.push(obj);
+    state.actors.push(obj);
   }
 }
 
 var removeFromScene = function(obj) {
-  screen.scene.remove(obj);
+  state.scene.remove(obj);
   if(obj.isActor) {
-    screen.actors.splice(screen.actors.indexOf(obj), 1);
+    state.actors.splice(state.actors.indexOf(obj), 1);
   }
 }
 
 screen.create = function(data) {
-  initializeScene(screen);
+  initializeState();
+
+  // TODO: don't like this
   network.setSceneAddCallback(addToScene);
   network.setSceneRemoveCallback(removeFromScene);
 
   var player = actor.create(data.character);
-  player.addPart(controls.createMainController(player, screen.camera));
   player.addPart(network.createNetUpdate(player));
-  player.add(screen.light.shadow.camera);
+  player.add(state.light.shadow.camera);
   addToScene(player);
+  state.player = player;
 
+  activeMode = modes.explore;
+
+  // TODO: temporary
   var chunk = chunks.createChunk({});
-  screen.scene.add(chunk);
+  state.scene.add(chunk);
 }
 
 screen.destroy = function() {
@@ -70,10 +79,22 @@ screen.destroy = function() {
 }
 
 screen.update  = function(delta) {
-  screen.actors.forEach((a) => a.parts.forEach(part => part.update(delta)));
-
+  state.actors.forEach((a) => a.parts.forEach(part => part.update(delta)));
+  activeMode.update(delta);
+  input.frameEndCallback();
   // update visible chunks
-  // update other actors
+
+  // handle mode transition also
+  // build generic state machine for screens, modes
+  // might want it to handle menuing system as well?
+
+  /*
+    // want to transition:
+
+    screen.transition = true;
+    screen.transitionToScreen = 'charload';
+    screen.transitionData = {};
+  */
 }
 
 module.exports = screen;

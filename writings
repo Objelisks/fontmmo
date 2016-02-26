@@ -180,6 +180,19 @@ editor (serverside)
 
 
 
+modes
+  exploreMode -> editorMode
+  exploreMode -> conflictMode
+  editorMode -> exploreMode
+  conflictMode -> exploreMode
+
+needs to be able to switch active module
+needs to be able to interact with controlled player/minions
+
+api:
+  update
+
+
 
 
 game actions
