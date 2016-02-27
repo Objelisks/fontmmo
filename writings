@@ -41,10 +41,10 @@ screens
 controls
   arrow keys
   qwer menus
-    (Q)uick-strike / (U)pset
-    (W)itchcraft / (I)nvocate
-    (E)mpathy / (O)ral
-    (R)eceptacles / (P)ockets
+    (Q)uick-strike  / (U)pset
+    (W)itchcraft    / (I)nvocate
+    (E)mpathy       / (O)ral
+    (R)eceptacles   / (P)ockets
 
 
 classes
@@ -66,10 +66,15 @@ Runeomancer
 Biomancer
   Grows plants, obstruction, growth (size)
 
-  IDK
+  LESSER
 Astronomer
 Psychopomp
-Artificier
+Carpenter
+Cartographer - neutral alliance
+  - explore the world, find useful information and trade it with those who seek it
+    -- find gem, sell location to gemwarden,warrior without getting involved
+    -- find mob cavern, trade location with levellers
+    -- create maps, trade maps
 
   ANCIENT FEUD (choose one, no right answer)
 Gemwarden
@@ -78,16 +83,16 @@ Gemwarden
 Gemwarrior
   Destroy gems, remove them from seats of power
   Absorb gem abilities (stronger abilities, lasts shorter amount of time, have to get past wardens)
-Wanderer, Cartographer - neutral alliance
-  - explore the world, find useful information and trade it with those who seek it
-    -- find gem, sell location to gemwarden,warrior without getting involved
-    -- find mob cavern, trade location with levellers
-    -- create maps, trade maps
+
 
 
 
 options:
   choose 1-2 conflict, 0-1 magjick, 0-1 feud
+  additive classes: collect classes, but can only have one of a set active?
+
+1 CONFLICT / 1 MAJICK / 1 FEUD / 0+ LESSER
+
 
 combinations of classes: options
 combat / magic / allegiance
@@ -97,7 +102,15 @@ Alc/Bio/Cart -> grow chemicals free
 -> each combination gives special synthesis abilities
 
 abilities are useful in overworld as well as combat (see Golden Sun)
+  movement, obstacles (creating, removing), combat
 
+punch, burn, burst, cloak, growth, water, blink, teleport, haste, slow, rune+combat, reveal
+obstacles:
+  rocks (burst, grow)
+  plants (burn, grow) vines to climb, root bridge
+  rivers (teleport, freeze?)
+  pits (summon, water->freeze)
+  statues (cloak, punch(move))
 
 terrain
 -------
