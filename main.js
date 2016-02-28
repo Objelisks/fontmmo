@@ -1,3 +1,4 @@
+/* global THREE */
 var state = require('./game/state.js');
 var screens = require('./game/screens/screens.js');
 

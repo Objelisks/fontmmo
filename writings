@@ -229,3 +229,89 @@ tile based vs polygon based collision maps
 
 
 TODO: rate limiting on all apis per ip (not connection)
+
+
+
+ABILITIES
+
+pugilist
+  punch doer
+  push / relocate / rush,charge
+  elemental affinity
+
+alchemist
+  item based
+  acid, heal, fire, juice,
+  alchemist's belt: holds 3 item types (few/few/many)
+    few acid bombs
+    few heal bombs
+    many fire bombs
+  choose what items to prepare ahead of time
+
+occultist
+  summon allies
+  can/can't control?
+
+teleporter
+  movement
+  blink/teleport/transport
+  speed/range/area
+
+biomancer
+  grow plant
+  see health of players
+
+rune doer
+  item based
+  limited number allowed in overworld: 3-4
+  magic unique to runes:
+    
+  cast magic from other classes on a rune and place on a tile, or in overworld as trap
+    bind rune -> trap -> jump out of bushes when someone gets trapped by it
+    fire rune -> place a few -> bait enemy group into
+
+gemwarden
+  big sords
+  protects gems
+  find gems and bring them to hidden places to protect
+  each gem under protection gives a
+
+gemwarrior
+  has a sowrd
+  destroys gems
+  have to go play hide and seek and find where wardens have hidden gems
+
+cartographer
+  proc gen environment
+  or landmarks, shifting terrain, obstacles, x marks the spot
+
+
+progression is ability mutation
+progression is quests to find source of progression reward
+  ability mutation -> teacher, orb of knowledge, implement
+  class -> school, teacher
+all progression choices should block off other progression paths
+
+
+health is small integer: 4
+  unharmed, hurt, x, wounded, ded
+  health is only visible when at 1-2 left
+
+simple inventory
+  only maintain rough amounts of items
+    one/few/many
+  one:
+    can only hold one at a time, when used, need to find/make a new one
+    alternatively, has unlimited uses, because not used up when used
+  few:
+    unlimited use in overworld, limited to 3/5/9 uses in conflict
+  many:
+    functions as item, but unlimited uses, some items(specialized pouch) or ability mutation can increase few -> many
+
+
+attributes
+  elemental affinity
+  defensive
+  create obstacles (natural, crafted walls, traps)
+
+try to have each class have at least 3 interesting, unique interactions with other classes

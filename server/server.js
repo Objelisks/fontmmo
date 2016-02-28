@@ -6,7 +6,7 @@ var os = require('os');
 /* deploy file server */
 var server = new StaticServer({
   rootPath:'./static/',
-  port: 9080
+  port: 8080
 });
 server.start();
 
@@ -19,7 +19,7 @@ statServer.on('connection', function(socket) {
   // one second updates
   setInterval(() => socket.emit('stat', dynamicStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {})), 1000)
 });
-statServer.listen(4000);
+statServer.listen(8082);
 
 // generate increasing ids
 // might need to store this in a file later if persistence is needed
@@ -68,4 +68,4 @@ io.on('connection', function(socket) {
   });
 });
 
-io.listen(3000);
+io.listen(8081);

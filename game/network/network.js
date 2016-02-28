@@ -1,10 +1,11 @@
+/* global THREE */
 var io = require('socket.io-client');
 var actor = require('../actors/actor.js');
 
 var local_id = null;
 var playerName = 'objelisks';
 
-var socket = io(window.location.hostname + ':3000');
+var socket = io(window.location.hostname + ':8081');
 
 socket.on('connect', function() {
   socket.emit('hello', playerName, function(id) {
@@ -16,10 +17,10 @@ socket.on('connect', function() {
 var updateSeparation = 100;
 
 module.exports.createNetUpdate = function(player) {
-  player.nextUpdate = performance.now() + updateSeparation;
+  player.nextUpdate = window.performance.now() + updateSeparation;
   return {
     update: function(delta) {
-      var now = performance.now();
+      var now = window.performance.now();
       if(now > player.nextUpdate) {
         socket.emit('move', {id: local_id, x: player.position.x, y: player.position.y, f: player.rotation.z}, function(success) {
 
