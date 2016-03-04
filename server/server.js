@@ -3,14 +3,15 @@ var statServer = require('socket.io')();
 var StaticServer = require('static-server');
 var os = require('os');
 
-/* deploy file server */
+// deploy file server
 var server = new StaticServer({
   rootPath:'./static/',
   port: 8080
 });
 server.start();
 
-/* deploy statistics server */
+/*
+// deploy statistics server
 var staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
 var dynamicStats = ['freemem', 'loadavg', 'uptime'];
 
@@ -20,6 +21,8 @@ statServer.on('connection', function(socket) {
   setInterval(() => socket.emit('stat', dynamicStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {})), 1000)
 });
 statServer.listen(8082);
+*/
+
 
 // generate increasing ids
 // might need to store this in a file later if persistence is needed

@@ -40,14 +40,14 @@ var initializeState = function() {
   state.actors = [];
 }
 
-var addToScene = function(obj) {
+screen.addToScene = function(obj) {
   state.scene.add(obj);
   if(obj.isActor) {
     state.actors.push(obj);
   }
 }
 
-var removeFromScene = function(obj) {
+screen.removeFromScene = function(obj) {
   state.scene.remove(obj);
   if(obj.isActor) {
     state.actors.splice(state.actors.indexOf(obj), 1);
@@ -58,20 +58,25 @@ screen.create = function(data) {
   initializeState();
 
   // TODO: don't like this
-  network.setSceneAddCallback(addToScene);
-  network.setSceneRemoveCallback(removeFromScene);
+  network.setSceneAddCallback(screen.addToScene);
+  network.setSceneRemoveCallback(screen.removeFromScene);
 
   var player = actor.create(data.character);
   player.addPart(network.createNetUpdate(player));
   player.add(state.light.shadow.camera);
-  addToScene(player);
+  screen.addToScene(player);
   state.player = player;
 
   activeMode = modes.explore;
 
-  // TODO: temporary
-  var chunk = chunks.createChunk({});
-  state.scene.add(chunk);
+  // init chunk
+  chunks.createChunk({
+    'objects':[
+      {'id': 'tree.json', 'x': 0, 'y': 2}
+    ],
+    'x': 0,
+    'y': 0
+  });
 }
 
 screen.destroy = function() {

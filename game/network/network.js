@@ -22,10 +22,12 @@ module.exports.createNetUpdate = function(player) {
     update: function(delta) {
       var now = window.performance.now();
       if(now > player.nextUpdate) {
-        socket.emit('move', {id: local_id, x: player.position.x, y: player.position.y, f: player.rotation.z}, function(success) {
-
-        });
+        
         // TODO: update to send input deltas
+        // TODO: prediction based on velocity
+        socket.emit('move', {id: local_id, x: player.position.x, y: player.position.y, f: player.rotation.z}, function(success) {
+          // TODO: fix prediction
+        });
         player.nextUpdate = now + updateSeparation;
       }
     }
@@ -92,3 +94,6 @@ socket.on('leave', function(data) {
     sceneRemoveCallback(idMap[id]);
   });
 });
+
+
+module.exports.on = socket.on.bind(socket);

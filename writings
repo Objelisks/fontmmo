@@ -13,7 +13,58 @@ character creation stats
 +graphs
 
 
-/*
+musings on chunks and server authority
+  too much work to track which chunks player is near...
+    need to check 
+  player can ask for chunks
+    server responds with static data
+  dynamic data is sent to player based on which chunk they are currently in
+  if player can ask for chunks, player should ask for chunks always
+  so player shouldn't ask for chunks, and can never ask for chunks
+  as
+
+server architecture
+  player input events imply chunk location
+  keep track of active chunks on player
+
+edge cases:
+  can see 4 chunks at once
+  if player can ask, can ask for chunks they dont need/shouldn't see
+
+assume:
+  no extremely(one chunk per frame) fast moving objects
+  messages are not lost (reliable despite packet loss)
+
+alternatives:
+  drop streaming of data, and make entering a chunk a deliberate user action
+  enter/exit zones -> 
+  
+
+chunk definition A: streamed chunks
+  square shape
+  load nearest 3 chunks
+  whole area is navigable
+  list of collider objects
+
+chunk definition B: diorama graph
+  arbitrary polygon shape
+  load connected chunk on exit
+  enter/exit zones marked
+  navigable area marked
+  list of collider objects
+
+chunk definition C: loose objects
+  no large terrain mesh
+  individual pieces sent as encountered
+  less sent at once, but more to send?
+
+chunk editor: Electron+THREE.js
+  draw polygon: geometry/verticies
+  draw decoration: paths (geometry+shader?)
+  draw enter/exit zones, tag with connected chunk + offset
+  draw navigable grid
+  place objects, tag with object id
+
 
 TODO LIST
 ---------

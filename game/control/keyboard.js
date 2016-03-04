@@ -4,10 +4,12 @@ var pressed = {};
 // 0: not pressed, 1: held, 2: pressed this frame
 window.addEventListener('keydown', function(e) {
   pressed[e.keyCode] = e.repeat ? 1 : 2;
+  e.preventDefault();
 });
 
 window.addEventListener('keyup', function(e) {
   pressed[e.keyCode] = 0;
+  e.preventDefault();
 });
 
 module.exports.frameEndCallback = function() {
