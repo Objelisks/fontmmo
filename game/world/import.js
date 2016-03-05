@@ -15,7 +15,7 @@ module.exports.importModel = function(path, cb) {
   if(meshes[path]) {
     cb(meshes[path]);
   } else {
-    loader.load('../models/' + path, function(geometry, materials) {
+    loader.load(`/models/${path}`, function(geometry, materials) {
       geometry.rotateX(Math.PI/2);
       var mesh = new THREE.Mesh(geometry, new THREE.MultiMaterial(convertToStandard(materials)));
       mesh.receiveShadow = true;
@@ -24,4 +24,22 @@ module.exports.importModel = function(path, cb) {
       cb(mesh);
     });
   }
+}
+
+
+module.exports.importObj = function(path, file, cb) {
+  var objLoader = new THREE.OBJLoader();
+  objLoader.setPath(`/models/${path}/`);
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setBaseUrl(`/models/${path}/`);
+  mtlLoader.setPath(`/models/${path}/`);
+  mtlLoader.load(`${file}.mtl`, function(materials) {
+    materials.preload();
+    objLoader.setMaterials(materials);
+    objLoader.load(`${file}.obj`, function(obj) {
+      obj.scale.set(0.05, 0.05, 0.05);
+      obj.rotateX(Math.PI / 2);
+      cb(obj);
+    })
+  })
 }
