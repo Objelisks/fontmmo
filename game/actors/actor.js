@@ -5,11 +5,10 @@ module.exports.create = function(data) {
   //var geo = new THREE.SphereGeometry(1, 50, 50);
   //var actor = new THREE.Mesh(geo, actorMaterial);
   var actor = new THREE.Object3D();
-  importer.importObj('Pikachu/', 'pikachu', function(obj) {
-    actor.add(obj);
-  });
-  actor.castShadow = true;
-  actor.receiveShadow = true;
+  var model = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 1), actorMaterial);
+  model.castShadow = true;
+  model.receiveShadow = true;
+  actor.add(model);
   actor.position.z = 0.5;
   actor.parts = [];
   actor.addPart = (p) => actor.parts.push(p);

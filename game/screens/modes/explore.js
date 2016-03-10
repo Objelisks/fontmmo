@@ -17,15 +17,13 @@ module.exports.update = function(delta) {
     movement.applyQuaternion(rotation);
     movement.normalize();
     state.player.position.add(movement.multiplyScalar(delta * moveSpeed));
-    state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, movement), 0.6);
+    state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, movement), 0.2);
   }
 
   //gridShader.SetVector ("_GridCenter", Vector4.Lerp(gridShader.GetVector("_GridCenter"), new Vector4 (transform.position.x, 0, transform.position.z, 0), 0.1f));
 
-  state.camera.position.lerp(state.player.position.clone().add(cameraOffset), 0.2);
+  var cameraLocation = state.player.position.clone().add(cameraOffset);
+  state.camera.position.lerp(cameraLocation, 0.2);
   state.camera.lookAt(state.player.position);
-
-  if(input.justPressed('editor')) {
-      //editorMode = !editorMode;
-  }
+  state.light.shadow.camera.position.set(cameraLocation);
 }

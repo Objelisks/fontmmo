@@ -1,14 +1,31 @@
 /* global THREE */
+const chunks = require('./chunk.js');
+
 var convertToStandard = function(materials) {
   return materials.map(function(mat) {
     return new THREE.MeshStandardMaterial({color: mat.color, roughness: 1.0, metalness: 0.0});
   });
 }
 
+var ajaxGet = function(filename, cb) {
+  var xhr = new XMLHttpRequest();
+  xhr.addEventListener('load', () => cb(xhr.responseText));
+  xhr.open('GET', filename);
+  xhr.send();
+}
+
 var loader = new THREE.JSONLoader();
 
 // cache
 var meshes = {};
+
+module.exports.importChunk = function(chunkName, cb) {
+  ajaxGet(`/models/chunks/${chunkName}.json`, function(data) {
+    var jsonData = JSON.parse(data);
+    var chunk = chunks.createChunk(jsonData);
+    cb(chunk);
+  });
+}
 
 module.exports.importModel = function(path, cb) {
   // TODO: preemptively cache instead of waiting until loaded to put into cache

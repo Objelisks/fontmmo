@@ -39,6 +39,7 @@ var genId = function(type) {
 io.on('connection', function(socket) {
   // store per-client info here
   socket.meta = {};
+  socket.history = [];
 
   // sent to server on connect
   socket.on('hello', function(playerName, fn) {
@@ -58,9 +59,28 @@ io.on('connection', function(socket) {
 
   // validate movement
   socket.on('move', function(msg, fn) {
+
+    // store packet history (data + time)
+    msg.recvDate = new Date();
+    socket.history.push(msg);
+    if(socket.history.length > 3) {
+      socket.history.shift();
+    }
+
+    // TODO: collision check / movement validation
+    if(Math.random() < 0.1) {
+      //cheat detection
+      // check move speed
+      // calc speed = pos2-pos1/time
+      // do a thing if speed is greater than it should be
+      // check collision
+    }
+
+    // if everything checks out
     // send update to each other client
     socket.broadcast.emit('move', {id: msg.id, x: msg.x, y: msg.y, f: msg.f});
-    // TODO: collision check / movement validation
+
+    // tell player they're good to go
     //fn(true);
   });
 

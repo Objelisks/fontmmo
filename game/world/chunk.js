@@ -6,14 +6,49 @@ var state = require('../state.js');
 // shared materials
 var grassMaterial = new THREE.MeshStandardMaterial({ color: 0x63B76D, roughness:1.0, metalness:0.0 });
 
+/*
+on enter exit zone, start loading next chunk
+place chunk based on offset specified in exit
+if chunk was entered not through exit zone, place at origin (remove any other chunks)
+render terrain of previous chunks as ghost (max distance one)
+
+data:
+{
+  name: string,
+  terrain: geometry,
+  grid: base64 bitmap,
+  exits: [
+    {
+      zone: {x,y,w,h,r},
+      target: string,
+      offset: {x, y, r}
+    },
+    ...
+  ],
+  objects: [
+    {
+      id: int,
+      position: {x,y,z},
+      rotation: {x,y,z}
+    },
+    ...
+  ]
+}
+*/
+
+var jsonLoader = new THREE.JSONLoader();
+
 // Creates a chunk and inserts it into the current scene
 var createChunk = module.exports.createChunk = function(data) {
   var chunk = new THREE.Object3D();
 
-  chunk.position.x = data.x;
-  chunk.position.y = data.y;
+  //chunk.position.x = data.x;
+  //chunk.position.y = data.y;
 
-  chunk.terrain = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), grassMaterial);
+  var terrain = jsonLoader.parse(data.terrain);
+  terrain.geometry.rotateX(Math.PI/2);
+
+  chunk.terrain = new THREE.Mesh(terrain.geometry, grassMaterial);
   chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 
@@ -25,9 +60,7 @@ var createChunk = module.exports.createChunk = function(data) {
       chunk.add(clone);
     });
   });
-  
-  state.screen.addToScene(chunk);
-  
+
   return chunk;
 }
 

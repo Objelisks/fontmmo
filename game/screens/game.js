@@ -1,8 +1,8 @@
 var actor = require('../actors/actor.js');
-var chunks = require('../world/chunk.js');
 var input = require('../control/input.js');
 var network = require('../network/network.js');
 var modes = require('./modes/modes.js');
+var importer = require('../world/import.js');
 
 var state = require('../state.js');
 
@@ -63,20 +63,26 @@ screen.create = function(data) {
 
   var player = actor.create(data.character);
   player.addPart(network.createNetUpdate(player));
-  player.add(state.light.shadow.camera);
+  //player.add(state.light.shadow.camera);
   screen.addToScene(player);
   state.player = player;
 
   activeMode = modes.explore;
 
   // init chunk
-  chunks.createChunk({
+  /*
+  var chunk = chunks.createChunk({
     'objects':[
       {'id': 'tree.json', 'x': 0, 'y': 2}
     ],
     'x': 0,
     'y': 0
   });
+  screen.addToScene(chunk);
+  */
+
+  screen.enterChunk('waterfall');
+
 }
 
 screen.destroy = function() {
@@ -100,6 +106,12 @@ screen.update  = function(delta) {
     screen.transitionToScreen = 'charload';
     screen.transitionData = {};
   */
+}
+
+screen.enterChunk = function(chunkName) {
+  importer.importChunk(chunkName, function(chunk) {
+    screen.addToScene(chunk);
+  });
 }
 
 module.exports = screen;
