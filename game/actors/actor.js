@@ -9,6 +9,10 @@ module.exports.create = function(data) {
   model.castShadow = true;
   model.receiveShadow = true;
   actor.add(model);
+  var light = new THREE.PointLight(actorMaterial.color, 1, 100, 2);
+  light.position.z = 0.5;
+  actor.add(light);
+
   actor.position.z = 0.5;
   actor.parts = [];
   actor.addPart = (p) => actor.parts.push(p);

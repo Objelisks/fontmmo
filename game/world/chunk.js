@@ -4,7 +4,7 @@ var importer = require('./import.js');
 var state = require('../state.js');
 
 // shared materials
-var grassMaterial = new THREE.MeshStandardMaterial({ color: 0x63B76D, roughness:1.0, metalness:0.0 });
+var grassMaterial = new THREE.MeshStandardMaterial({ color: 0x63B76D, roughness:0.7, metalness:0.0 });
 
 /*
 on enter exit zone, start loading next chunk
@@ -47,8 +47,14 @@ var createChunk = module.exports.createChunk = function(data) {
 
   var terrain = jsonLoader.parse(data.terrain);
   terrain.geometry.rotateX(Math.PI/2);
+  var convertedMaterials = terrain.materials.map((mat) => {
+    var newMat = new THREE.MeshStandardMaterial({color: mat.color, roughness: 1.0, metalness: 0.0});
+    newMat.shading = THREE.FlatShading;
+    return newMat;
+  });
 
-  chunk.terrain = new THREE.Mesh(terrain.geometry, grassMaterial);
+  chunk.terrain = new THREE.Mesh(terrain.geometry, new THREE.MultiMaterial(convertedMaterials));
+  chunk.terrain.material.shading = THREE.FlatShading;
   chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 

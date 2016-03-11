@@ -82,6 +82,7 @@ screen.create = function(data) {
   */
 
   screen.enterChunk('waterfall');
+  screen.enterChunk('bridge');
 
 }
 
