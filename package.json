@@ -4,6 +4,8 @@
   "description": "font mmo",
   "main": "static/index.html",
   "scripts": {
+    "server": "node server/server.js",
+    "watch": "watchify main.js -o static/compiled.js --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
