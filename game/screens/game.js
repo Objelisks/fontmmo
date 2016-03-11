@@ -1,3 +1,4 @@
+/* global THREE */
 var actor = require('../actors/actor.js');
 var input = require('../control/input.js');
 var network = require('../network/network.js');
@@ -63,7 +64,6 @@ screen.create = function(data) {
 
   var player = actor.create(data.character);
   player.addPart(network.createNetUpdate(player));
-  //player.add(state.light.shadow.camera);
   screen.addToScene(player);
   state.player = player;
 
