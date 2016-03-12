@@ -10,6 +10,8 @@ var cameraOffset = new THREE.Vector3(0,-10,20);
 var activeZones = [];
 
 module.exports.update = function(delta) {
+
+  // handle input and move player based on camera direction
   var movement = new THREE.Vector3 (0,0,0);
   movement.x += input.isDown('left') ? -1 : (input.isDown('right') ? 1 : 0);
   movement.y += input.isDown('up') ? 1 : (input.isDown('down') ? -1 : 0);
@@ -22,12 +24,25 @@ module.exports.update = function(delta) {
     state.player.position.add(movement.multiplyScalar(delta * moveSpeed));
     state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, movement), 0.2);
   }
-  
+
+  //gridShader.SetVector ("_GridCenter", Vector4.Lerp(gridShader.GetVector("_GridCenter"), new Vector4 (transform.position.x, 0, transform.position.z, 0), 0.1f));
+
+  // update main camera and shadow camera
+  var cameraLocation = state.player.position.clone().add(cameraOffset);
+  state.camera.position.lerp(cameraLocation, 0.2);
+  state.camera.lookAt(state.player.position);
+  state.light.shadow.camera.position.set(cameraLocation);
+
+  // stop here if chunk is not loaded yet
+  if(state.chunk === undefined) {
+    return;
+  }
+
   // Check to see if player is over any zones
-  var zoneChecker = new THREE.Raytracer(state.player.position, UP.clone().negate());
-  var hits = zoneChecker.raycast(state.chunk.zones);
+  var zoneChecker = new THREE.Raycaster(state.player.position, UP.clone().negate());
+  var hits = zoneChecker.intersectObjects(state.chunk.zones);
   var newActiveZones = [];
-  
+
   hits.forEach(function(zoneHit) {
     var type = zoneHit.object.type;
     // If we were in the zone last frame stay, else enter
@@ -36,21 +51,15 @@ module.exports.update = function(delta) {
     } else {
       zones.enter(type, zoneHit);
     }
-    
+
     newActiveZones.push(zoneHit.object);
   });
-  
+
   // For each of the zones which left the active set, call exit
   activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
     zones.exit(zone.type);
   });
   activeZones = newActiveZones;
-  
 
-  //gridShader.SetVector ("_GridCenter", Vector4.Lerp(gridShader.GetVector("_GridCenter"), new Vector4 (transform.position.x, 0, transform.position.z, 0), 0.1f));
 
-  var cameraLocation = state.player.position.clone().add(cameraOffset);
-  state.camera.position.lerp(cameraLocation, 0.2);
-  state.camera.lookAt(state.player.position);
-  state.light.shadow.camera.position.set(cameraLocation);
 }

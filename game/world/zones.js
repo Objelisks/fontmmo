@@ -17,4 +17,4 @@ var handle = function(op) {
     }
 }
 
-module.exports = ['enter', 'stay', 'exit'].reduce((mod, op) => { mod[op] = handle(op); }, {});
+module.exports = ['enter', 'stay', 'exit'].reduce((mod, op) => { mod[op] = handle(op); return mod; }, {});

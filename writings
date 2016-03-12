@@ -1,4 +1,12 @@
-today's todo:
+OPTIMIZATIONS
+
+use static vector copy instead of clone
+
+
+
+
+
+
 
 have chunks load in as we approach edge of current chunks
 optimize as much as possible based on top down camera perspective
@@ -15,7 +23,7 @@ character creation stats
 
 musings on chunks and server authority
   too much work to track which chunks player is near...
-    need to check 
+    need to check
   player can ask for chunks
     server responds with static data
   dynamic data is sent to player based on which chunk they are currently in
@@ -37,8 +45,8 @@ assume:
 
 alternatives:
   drop streaming of data, and make entering a chunk a deliberate user action
-  enter/exit zones -> 
-  
+  enter/exit zones ->
+
 
 chunk definition A: streamed chunks
   square shape
@@ -64,6 +72,21 @@ chunk editor: Electron+THREE.js
   draw enter/exit zones, tag with connected chunk + offset
   draw navigable grid
   place objects, tag with object id
+
+workflow:
+  build terrain in blender + materials
+  import terrain into editor -> convert materials, simplify json data
+  mark zones -> add connection, offset in editor
+  export final json
+
+future needs from editor:
+  zone placement
+  object placement
+  npc placement -> settings, dialogue?
+  events
+
+
+
 
 
 TODO LIST
@@ -316,7 +339,7 @@ rune doer
   item based
   limited number allowed in overworld: 3-4
   magic unique to runes:
-    
+
   cast magic from other classes on a rune and place on a tile, or in overworld as trap
     bind rune -> trap -> jump out of bushes when someone gets trapped by it
     fire rune -> place a few -> bait enemy group into

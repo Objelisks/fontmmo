@@ -82,7 +82,6 @@ screen.create = function(data) {
   */
 
   screen.enterChunk('waterfall');
-  screen.enterChunk('bridge');
 
 }
 
@@ -112,6 +111,7 @@ screen.update  = function(delta) {
 screen.enterChunk = function(chunkName) {
   importer.importChunk(chunkName, function(chunk) {
     screen.addToScene(chunk);
+    state.chunk = chunk;
   });
 }
 

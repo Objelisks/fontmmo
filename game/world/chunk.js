@@ -58,6 +58,8 @@ var createChunk = module.exports.createChunk = function(data) {
   chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 
+  chunk.zones = [];
+
   data.objects.forEach(function(obj) {
     importer.importModel(obj.id, function(mesh) {
       var clone = mesh.clone();
