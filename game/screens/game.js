@@ -18,12 +18,12 @@ var initializeState = function() {
   state.scene = scene;
 
   var camera = new THREE.PerspectiveCamera(60, width/height, 1, 1000);
-  camera.position.set(0,-10,10);
+  camera.position.set(0,10,-10);
   camera.lookAt(new THREE.Vector3(0,0,0));
   state.camera = camera;
 
   var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight.position.set(5,-5,10);
+  dirLight.position.set(5,10,-5);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 1;
   dirLight.shadow.camera.far = 1000;
@@ -108,8 +108,13 @@ screen.update  = function(delta) {
   */
 }
 
-screen.enterChunk = function(chunkName) {
+screen.enterChunk = function(chunkName, position, rotation) {
   importer.importChunk(chunkName, function(chunk) {
+    if(position && rotation) {
+      chunk.position.set(position.x, position.y, position.z);
+      //chunk.rotation.set(rotation._x, rotation._y, rotation._z);
+    }
+
     screen.addToScene(chunk);
     state.chunk = chunk;
   });

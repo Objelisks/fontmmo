@@ -3,18 +3,18 @@ const input = require('../../control/input.js');
 const state = require('../../state.js');
 const zones = require('../../world/zones.js');
 
-var UP = new THREE.Vector3(0,0,1);
-var NORTH = new THREE.Vector3(0,1,0);
+var UP = new THREE.Vector3(0,1,0);
+var NORTH = new THREE.Vector3(0,0,1);
 var moveSpeed = 10.0;
-var cameraOffset = new THREE.Vector3(0,-10,20);
+var cameraOffset = new THREE.Vector3(0,20,10);
 var activeZones = [];
 
 module.exports.update = function(delta) {
 
   // handle input and move player based on camera direction
   var movement = new THREE.Vector3 (0,0,0);
-  movement.x += input.isDown('left') ? -1 : (input.isDown('right') ? 1 : 0);
-  movement.y += input.isDown('up') ? 1 : (input.isDown('down') ? -1 : 0);
+  movement.x += input.isDown('left') ? 1 : (input.isDown('right') ? -1 : 0);
+  movement.z += input.isDown('up') ? 1 : (input.isDown('down') ? -1 : 0);
   if(movement.length() >= 0) {
     var forward = state.camera.getWorldDirection();
     var rotateAxis = forward.projectOnPlane(UP).normalize();
@@ -39,17 +39,18 @@ module.exports.update = function(delta) {
   }
 
   // Check to see if player is over any zones
-  var zoneChecker = new THREE.Raycaster(state.player.position, UP.clone().negate());
+  var zoneChecker = new THREE.Raycaster(state.player.position.clone().add(UP), UP.clone().negate());
   var hits = zoneChecker.intersectObjects(state.chunk.zones);
   var newActiveZones = [];
 
   hits.forEach(function(zoneHit) {
+    console.log(zoneHit.object.type);
     var type = zoneHit.object.type;
-    // If we were in the zone last frame stay, else enter
-    if(activeZones.indexOf(zoneHit.object)) {
-      zones.stay(type, zoneHit);
-    } else {
+    // If we weren't in the zone last frame: enter, else stay
+    if(activeZones.indexOf(zoneHit.object) === -1) {
       zones.enter(type, zoneHit);
+    } else {
+      zones.stay(type, zoneHit);
     }
 
     newActiveZones.push(zoneHit.object);

@@ -37,6 +37,7 @@ data:
 */
 
 var jsonLoader = new THREE.JSONLoader();
+var objLoader = new THREE.ObjectLoader();
 
 // Creates a chunk and inserts it into the current scene
 var createChunk = module.exports.createChunk = function(data) {
@@ -45,20 +46,36 @@ var createChunk = module.exports.createChunk = function(data) {
   //chunk.position.x = data.x;
   //chunk.position.y = data.y;
 
-  var terrain = jsonLoader.parse(data.terrain);
-  terrain.geometry.rotateX(Math.PI/2);
+  var terrain = objLoader.parse(data.terrain);
+  console.log(terrain);
+  /*
+
   var convertedMaterials = terrain.materials.map((mat) => {
     var newMat = new THREE.MeshStandardMaterial({color: mat.color, roughness: 1.0, metalness: 0.0});
     newMat.shading = THREE.FlatShading;
     return newMat;
   });
-
-  chunk.terrain = new THREE.Mesh(terrain.geometry, new THREE.MultiMaterial(convertedMaterials));
-  chunk.terrain.material.shading = THREE.FlatShading;
-  chunk.terrain.receiveShadow = true;
+  */
+  //terrain.geometry.rotateX(Math.PI/2);
+  //chunk.rotateX(Math.PI/2);
+  chunk.terrain = terrain;
+  //chunk.terrain.material.shading = THREE.FlatShading;
+  //chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 
-  chunk.zones = [];
+  chunk.zones = data.zones.map(function(zone) {
+    var box = new THREE.Mesh(new THREE.BoxGeometry(zone.scale.x, zone.scale.y, zone.scale.z), new THREE.MeshBasicMaterial());
+    box.position.set(zone.position.x, zone.position.y, zone.position.z);
+    box.rotation.set(zone.rotation._x, zone.rotation._y, zone.rotation._z);
+    //box.visible = false;
+    box.type = 'exit';
+    box.connection = zone.connection;
+    box.offsetPosition = zone.offsetPosition;
+    box.offsetRotation = zone.offsetRotation;
+    chunk.add(box);
+    console.log(box);
+    return box;
+  });
 
   data.objects.forEach(function(obj) {
     importer.importModel(obj.id, function(mesh) {
