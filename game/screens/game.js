@@ -110,20 +110,41 @@ screen.fadeIn = function(time, cb) {
   tween.start();
 }
 
+
+// load the chunk, when done loading fade out and replace chunks, then fade back in
 screen.enterChunk = function(chunkName, position, rotation) {
   importer.importChunk(chunkName, function(chunk) {
-    if(position && rotation) {
-      chunk.position.set(position.x, position.y, position.z);
-      //chunk.rotation.set(rotation._x, rotation._y, rotation._z);
-    }
-
     screen.fadeOut(100, function() {
+      var outputPoint = chunk.position;
       if(state.chunk) {
+        // assume for now that connections are always two way
+        // find the corresponding connection zone and get a random point from it
+        var zoneConnection = chunk.zones.filter((zone) => zone.connection === state.chunk.name)[0];
+        if(zoneConnection) {
+          outputPoint = zoneConnection.localToWorld(zoneConnection.position.clone());
+          outputPoint.add(new THREE.Vector3(
+            zoneConnection.scale.x * (Math.random()-0.5),
+            zoneConnection.scale.y * (Math.random()-0.5),
+            zoneConnection.scale.z * (Math.random()-0.5)));
+        }
+        // deactivate zone until the zone is left
+        zoneConnection.justEntered = true;
+
+        // remove the old chunk
         screen.removeFromScene(state.chunk);
       }
+
+      // add the new chunk
       state.chunk = chunk;
       screen.addToScene(state.chunk);
 
+      // update the player and camera position
+      // TODO: do this in explore.js to consolidate camera offset
+      state.player.position.copy(outputPoint);
+      state.player.position.y = 0.5;
+      state.camera.position.copy(state.player.position.clone().add(new THREE.Vector3(0, 10, 20)));
+
+      // fade back in
       screen.fadeIn(100);
     });
 

@@ -4,7 +4,13 @@ var zones = {
     "exit": {
         "enter": function(hit) {
             var zone = hit.object;
+            if(zone.justEntered) {
+              return;
+            }
             state.screen.enterChunk(zone.connection, zone.offsetPosition, zone.offsetRotation);
+        },
+        "exit": function(zone) {
+          zone.justEntered = false;
         }
     }
 }

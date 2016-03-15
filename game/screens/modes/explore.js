@@ -57,7 +57,7 @@ module.exports.update = function(delta) {
 
   // For each of the zones which left the active set, call exit
   activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
-    zones.exit(zone.type);
+    zones.exit(zone.type, zone);
   });
   activeZones = newActiveZones;
 

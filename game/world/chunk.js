@@ -46,14 +46,17 @@ var createChunk = module.exports.createChunk = function(data) {
   //chunk.position.x = data.x;
   //chunk.position.y = data.y;
 
+  chunk.name = data.name;
+
   var terrain = objLoader.parse(data.terrain);
   chunk.terrain = terrain;
   chunk.add(chunk.terrain);
 
   chunk.zones = data.zones.map(function(zone) {
-    var box = new THREE.Mesh(new THREE.BoxGeometry(zone.scale.x, zone.scale.y, zone.scale.z), new THREE.MeshBasicMaterial());
+    var box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
     box.position.set(zone.position.x, zone.position.y, zone.position.z);
     box.rotation.set(zone.rotation._x, zone.rotation._y, zone.rotation._z);
+    box.scale.set(zone.scale.x, zone.scale.y, zone.scale.z);
     //box.visible = false;
     box.type = 'exit';
     box.connection = zone.connection;
