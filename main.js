@@ -11,6 +11,7 @@ var renderer = new THREE.WebGLRenderer({
 renderer.setSize(width, height);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+state.renderer = renderer;
 
 document.body.appendChild(renderer.domElement);
 

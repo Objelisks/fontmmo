@@ -44,7 +44,6 @@ module.exports.update = function(delta) {
   var newActiveZones = [];
 
   hits.forEach(function(zoneHit) {
-    console.log(zoneHit.object.type);
     var type = zoneHit.object.type;
     // If we weren't in the zone last frame: enter, else stay
     if(activeZones.indexOf(zoneHit.object) === -1) {

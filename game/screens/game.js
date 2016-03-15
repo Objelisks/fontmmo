@@ -55,6 +55,9 @@ screen.removeFromScene = function(obj) {
   }
 }
 
+var fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
+  new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
+
 screen.create = function(data) {
   initializeState();
 
@@ -67,22 +70,13 @@ screen.create = function(data) {
   screen.addToScene(player);
   state.player = player;
 
-  activeMode = modes.explore;
+  state.scene.add(fadeObject);
 
-  // init chunk
-  /*
-  var chunk = chunks.createChunk({
-    'objects':[
-      {'id': 'tree.json', 'x': 0, 'y': 2}
-    ],
-    'x': 0,
-    'y': 0
-  });
-  screen.addToScene(chunk);
-  */
+  activeMode = modes.explore;
 
   screen.enterChunk('waterfall');
 
+  state.scene.add(new THREE.AxisHelper(5));
 }
 
 screen.destroy = function() {
@@ -92,20 +86,28 @@ screen.destroy = function() {
 screen.update  = function(delta) {
   state.actors.forEach((a) => a.parts.forEach(part => part.update(delta)));
   activeMode.update(delta);
-  input.frameEndCallback();
-  // update visible chunks
+  input.update(delta);
+  TWEEN.update();
 
-  // handle mode transition also
-  // build generic state machine for screens, modes
-  // might want it to handle menuing system as well?
+  fadeObject.position.copy(state.camera.position);
+}
 
-  /*
-    // want to transition:
+screen.fadeOut = function(time, cb) {
+  var tween = new TWEEN.Tween(fadeObject.material)
+    .to({opacity: 1.0}, time);
+  if(cb) {
+    tween.onComplete(cb);
+  }
+  tween.start();
+}
 
-    screen.transition = true;
-    screen.transitionToScreen = 'charload';
-    screen.transitionData = {};
-  */
+screen.fadeIn = function(time, cb) {
+  var tween = new TWEEN.Tween(fadeObject.material)
+    .to({opacity: 0.0}, time);
+  if(cb) {
+    tween.onComplete(cb);
+  }
+  tween.start();
 }
 
 screen.enterChunk = function(chunkName, position, rotation) {
@@ -115,8 +117,16 @@ screen.enterChunk = function(chunkName, position, rotation) {
       //chunk.rotation.set(rotation._x, rotation._y, rotation._z);
     }
 
-    screen.addToScene(chunk);
-    state.chunk = chunk;
+    screen.fadeOut(100, function() {
+      if(state.chunk) {
+        screen.removeFromScene(state.chunk);
+      }
+      state.chunk = chunk;
+      screen.addToScene(state.chunk);
+
+      screen.fadeIn(100);
+    });
+
   });
 }
 

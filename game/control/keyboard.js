@@ -12,7 +12,7 @@ window.addEventListener('keyup', function(e) {
   e.preventDefault();
 });
 
-module.exports.frameEndCallback = function() {
+module.exports.update = function(delta) {
   Object.keys(pressed).forEach(function (keyCode) {
     if(pressed[keyCode] === 2) {
       pressed[keyCode] = 1;

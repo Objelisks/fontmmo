@@ -12,6 +12,6 @@ module.exports.justPressed = function(key) {
     return inputMethods.some((method) => method.justPressed(key));
 }
 
-module.exports.frameEndCallback = function() {
-  inputMethods.forEach((method) => method.frameEndCallback());
+module.exports.update = function(delta) {
+  inputMethods.forEach((method) => method.update(delta));
 }

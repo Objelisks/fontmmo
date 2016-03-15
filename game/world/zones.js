@@ -3,7 +3,6 @@ const state = require('../state.js');
 var zones = {
     "exit": {
         "enter": function(hit) {
-            console.log('hello');
             var zone = hit.object;
             state.screen.enterChunk(zone.connection, zone.offsetPosition, zone.offsetRotation);
         }
@@ -19,4 +18,3 @@ var handle = function(op) {
 }
 
 module.exports = ['enter', 'stay', 'exit'].reduce((mod, op) => { mod[op] = handle(op); return mod; }, {});
-console.log(module.exports);

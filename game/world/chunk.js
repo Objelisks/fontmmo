@@ -47,20 +47,7 @@ var createChunk = module.exports.createChunk = function(data) {
   //chunk.position.y = data.y;
 
   var terrain = objLoader.parse(data.terrain);
-  console.log(terrain);
-  /*
-
-  var convertedMaterials = terrain.materials.map((mat) => {
-    var newMat = new THREE.MeshStandardMaterial({color: mat.color, roughness: 1.0, metalness: 0.0});
-    newMat.shading = THREE.FlatShading;
-    return newMat;
-  });
-  */
-  //terrain.geometry.rotateX(Math.PI/2);
-  //chunk.rotateX(Math.PI/2);
   chunk.terrain = terrain;
-  //chunk.terrain.material.shading = THREE.FlatShading;
-  //chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 
   chunk.zones = data.zones.map(function(zone) {
@@ -73,7 +60,6 @@ var createChunk = module.exports.createChunk = function(data) {
     box.offsetPosition = zone.offsetPosition;
     box.offsetRotation = zone.offsetRotation;
     chunk.add(box);
-    console.log(box);
     return box;
   });
 
@@ -81,7 +67,7 @@ var createChunk = module.exports.createChunk = function(data) {
     importer.importModel(obj.id, function(mesh) {
       var clone = mesh.clone();
       clone.position.x = obj.x;
-      clone.position.y = obj.y;
+      clone.position.z = obj.z;
       chunk.add(clone);
     });
   });
