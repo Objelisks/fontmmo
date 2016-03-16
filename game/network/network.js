@@ -25,7 +25,7 @@ module.exports.createNetUpdate = function(player) {
 
         // TODO: update to send input deltas
         // TODO: prediction based on velocity
-        socket.emit('move', {id: local_id, x: player.position.x, y: player.position.y, f: player.rotation.z}, function(success) {
+        socket.emit('move', {id: local_id, x: player.position.x, y: player.position.z, f: player.rotation.z}, function(success) {
           // TODO: fix prediction
         });
         player.nextUpdate = now + updateSeparation;
@@ -50,7 +50,7 @@ module.exports.createNetReceiver = function(object, id) {
   return {
     update: function(delta) {
       if(object.netTarget) {
-        object.position.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.1);
+        object.position.lerp(new THREE.Vector3(object.netTarget.x, object.position.y, object.netTarget.y), 0.1);
         //object.rotation.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.5);
       }
     },
