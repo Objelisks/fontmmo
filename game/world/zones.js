@@ -15,6 +15,7 @@ var zones = {
     }
 }
 
+// convenience function so each zone doesn't have to have all ops
 var handle = function(op) {
     return function(type, hit) {
         if(zones[type][op]) {

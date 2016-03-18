@@ -2,14 +2,21 @@
 const input = require('../../control/input.js');
 const state = require('../../state.js');
 const zones = require('../../world/zones.js');
+const collision = require('../../interact/collision.js');
 
 var UP = new THREE.Vector3(0,1,0);
 var NORTH = new THREE.Vector3(0,0,1);
 var moveSpeed = 10.0;
-var cameraOffset = new THREE.Vector3(0,20,10);
+var cameraOffset = new THREE.Vector3(10,20,10);
 var activeZones = [];
+const fixedDelta = 1/60;
 
 module.exports.update = function(delta) {
+
+  // stop here if chunk is not loaded yet
+  if(state.chunk === undefined) {
+    return;
+  }
 
   // handle input and move player based on camera direction
   var movement = new THREE.Vector3 (0,0,0);
@@ -21,8 +28,12 @@ module.exports.update = function(delta) {
     var rotation = new THREE.Quaternion().setFromUnitVectors(NORTH, rotateAxis);
     movement.applyQuaternion(rotation);
     movement.normalize();
-    state.player.position.add(movement.multiplyScalar(delta * moveSpeed));
-    state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, movement), 0.2);
+    movement.multiplyScalar(fixedDelta * moveSpeed);
+
+    var actualMovement = collision.resolveChunkWalls(state.player.position, movement, 1)
+
+    state.player.position.add(actualMovement);
+    state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, actualMovement), 0.2);
   }
 
   //gridShader.SetVector ("_GridCenter", Vector4.Lerp(gridShader.GetVector("_GridCenter"), new Vector4 (transform.position.x, 0, transform.position.z, 0), 0.1f));
@@ -32,11 +43,6 @@ module.exports.update = function(delta) {
   state.camera.position.lerp(cameraLocation, 0.2);
   state.camera.lookAt(state.player.position);
   state.light.shadow.camera.position.set(cameraLocation);
-
-  // stop here if chunk is not loaded yet
-  if(state.chunk === undefined) {
-    return;
-  }
 
   // Check to see if player is over any zones
   var zoneChecker = new THREE.Raycaster(state.player.position.clone().add(UP), UP.clone().negate());

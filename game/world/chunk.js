@@ -15,13 +15,15 @@ render terrain of previous chunks as ghost (max distance one)
 data:
 {
   name: string,
-  terrain: geometry,
+  terrain: three object,
   grid: base64 bitmap,
-  exits: [
+  zones: [
     {
-      zone: {x,y,w,h,r},
-      target: string,
-      offset: {x, y, r}
+      type: string,
+      position: {},
+      rotation: {},
+      scale: {},
+      connection: string
     },
     ...
   ],
@@ -52,6 +54,7 @@ var createChunk = module.exports.createChunk = function(data) {
   chunk.terrain = terrain;
   chunk.add(chunk.terrain);
 
+  // load all the zones, and set metadata
   chunk.zones = data.zones.map(function(zone) {
     var box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
     box.position.set(zone.position.x, zone.position.y, zone.position.z);
@@ -60,12 +63,11 @@ var createChunk = module.exports.createChunk = function(data) {
     //box.visible = false;
     box.type = 'exit';
     box.connection = zone.connection;
-    box.offsetPosition = zone.offsetPosition;
-    box.offsetRotation = zone.offsetRotation;
     chunk.add(box);
     return box;
   });
 
+  // instantiate all the objects
   data.objects.forEach(function(obj) {
     importer.importModel(obj.id, function(mesh) {
       var clone = mesh.clone();
@@ -74,6 +76,8 @@ var createChunk = module.exports.createChunk = function(data) {
       chunk.add(clone);
     });
   });
+
+  chunk.walls = data.walls;
 
   return chunk;
 }
