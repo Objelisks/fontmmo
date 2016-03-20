@@ -1,6 +1,7 @@
 /* global THREE */
-var io = require('socket.io-client');
-var actor = require('../actors/actor.js');
+const io = require('socket.io-client');
+const actor = require('../actors/actor.js');
+const state = require('../state.js');
 
 var local_id = null;
 var playerName = 'objelisks';
@@ -61,16 +62,6 @@ module.exports.createNetReceiver = function(object, id) {
   }
 }
 
-var sceneAddCallback,
-    sceneRemoveCallback;
-
-module.exports.setSceneAddCallback = function(sceneAdd) {
-  sceneAddCallback = sceneAdd;
-}
-module.exports.setSceneRemoveCallback = function(sceneRemove) {
-  sceneRemoveCallback = sceneRemove;
-}
-
 // TODO: use data to customize actor
 var createFromNetData = function(data) {
   var obj = actor.create({});
@@ -83,7 +74,8 @@ socket.on('new', function(data) {
     if(id === local_id) return;
     var obj = createFromNetData(id);
     obj.addPart(module.exports.createNetReceiver(obj, id));
-    sceneAddCallback(obj);
+    state.scene.add(obj);
+    state.networkActors.push(obj);
   });
 });
 
@@ -91,9 +83,11 @@ socket.on('new', function(data) {
 socket.on('leave', function(data) {
   data.ids.forEach(function(id) {
     if(id === local_id) return;
-    sceneRemoveCallback(idMap[id]);
+    state.scene.remove(idMap[id]);
+    state.networkActors.splice(state.actors.indexOf(obj), 1);
   });
 });
 
 
 module.exports.on = socket.on.bind(socket);
+module.exports.send = socket.emit.bind(socket);

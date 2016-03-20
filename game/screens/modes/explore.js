@@ -30,7 +30,7 @@ module.exports.update = function(delta) {
     movement.normalize();
     movement.multiplyScalar(fixedDelta * moveSpeed);
 
-    var actualMovement = collision.resolveChunkWalls(state.player.position, movement, 1)
+    var actualMovement = collision.resolveChunkWalls(state.player.position, movement, 0.5)
 
     state.player.position.add(actualMovement);
     state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, actualMovement), 0.2);
@@ -66,6 +66,4 @@ module.exports.update = function(delta) {
     zones.exit(zone.type, zone);
   });
   activeZones = newActiveZones;
-
-
 }

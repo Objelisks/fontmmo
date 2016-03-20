@@ -46,6 +46,12 @@ io.on('connection', function(socket) {
     // generate player id
     var id = genId('player');
     socket.meta.id = id;
+
+    // load stored player data
+    // set up location
+    // socket.join(initialchunkroom);
+    // socket.currentChunk = initialchunkroom;
+
     console.log('HELLO', 'generated player', id, playerName);
     fn(id); // ack
 
@@ -78,10 +84,19 @@ io.on('connection', function(socket) {
 
     // if everything checks out
     // send update to each other client
-    socket.broadcast.emit('move', {id: msg.id, x: msg.x, y: msg.y, f: msg.f});
+    socket.broadcast.in(socket.currentChunk).emit('move', {id: msg.id, x: msg.x, y: msg.y, f: msg.f});
 
     // tell player they're good to go
     //fn(true);
+  });
+
+  socket.on('chunk_transition', function(msg) {
+    console.log(msg);
+    socket.broadcast.in(socket.currentChunk).emit('leave', {ids: [socket.meta.id]});
+    socket.leave(socket.currentChunk);
+    socket.join(msg);
+    socket.currentChunk = msg;
+    socket.broadcast.in(socket.currentChunk).emit('new', {ids: [socket.meta.id]});
   });
 
   socket.on('disconnect', function() {

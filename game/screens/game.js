@@ -1,14 +1,16 @@
 /* global THREE */
-var actor = require('../actors/actor.js');
-var input = require('../control/input.js');
-var network = require('../network/network.js');
-var modes = require('./modes/modes.js');
-var importer = require('../world/import.js');
-
-var state = require('../state.js');
+const actor = require('../actors/actor.js');
+const input = require('../control/input.js');
+const network = require('../network/network.js');
+const modes = require('./modes/modes.js');
+const importer = require('../world/import.js');
+const state = require('../state.js');
 
 var activeMode;
 var screen = {};
+
+var fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
+  new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
 
 var width = 1024,
     height = 768;
@@ -26,7 +28,7 @@ var initializeState = function() {
   dirLight.position.set(5,10,-5);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 1;
-  dirLight.shadow.camera.far = 1000;
+  dirLight.shadow.camera.far = 50;
   dirLight.shadow.camera.left = -25;
   dirLight.shadow.camera.right = 25;
   dirLight.shadow.camera.top = 25;
@@ -39,35 +41,16 @@ var initializeState = function() {
   scene.add(ambLight);
 
   state.actors = [];
+  state.networkActors = [];
 }
-
-screen.addToScene = function(obj) {
-  state.scene.add(obj);
-  if(obj.isActor) {
-    state.actors.push(obj);
-  }
-}
-
-screen.removeFromScene = function(obj) {
-  state.scene.remove(obj);
-  if(obj.isActor) {
-    state.actors.splice(state.actors.indexOf(obj), 1);
-  }
-}
-
-var fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
-  new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
 
 screen.create = function(data) {
   initializeState();
 
-  // TODO: don't like this
-  network.setSceneAddCallback(screen.addToScene);
-  network.setSceneRemoveCallback(screen.removeFromScene);
-
   var player = actor.create(data.character);
   player.addPart(network.createNetUpdate(player));
-  screen.addToScene(player);
+  state.scene.add(player);
+  state.actors.push(player);
   state.player = player;
 
   state.scene.add(fadeObject);
@@ -85,6 +68,7 @@ screen.destroy = function() {
 
 screen.update  = function(delta) {
   state.actors.forEach((a) => a.parts.forEach(part => part.update(delta)));
+  state.networkActors.forEach((a) => a.parts.forEach(part => part.update(delta)));
   activeMode.update(delta);
   input.update(delta);
   TWEEN.update();
@@ -110,6 +94,14 @@ screen.fadeIn = function(time, cb) {
   tween.start();
 }
 
+var cleanupChunk = function() {
+  // remove the old chunk
+  state.scene.remove(state.chunk);
+
+  // remove network actors in previous chunk
+  state.networkActors.forEach((actor) => state.scene.remove(actor));
+  state.networkActors = [];
+}
 
 // load the chunk, when done loading fade out and replace chunks, then fade back in
 screen.enterChunk = function(chunkName, position, rotation) {
@@ -122,21 +114,21 @@ screen.enterChunk = function(chunkName, position, rotation) {
         var zoneConnection = chunk.zones.filter((zone) => zone.connection === state.chunk.name)[0];
         if(zoneConnection) {
           outputPoint = zoneConnection.localToWorld(zoneConnection.position.clone());
-          outputPoint.add(new THREE.Vector3(
-            zoneConnection.scale.x * (Math.random()-0.5),
-            zoneConnection.scale.y * (Math.random()-0.5),
-            zoneConnection.scale.z * (Math.random()-0.5)));
+          outputPoint.add(new THREE.Vector3(zoneConnection.scale.x * (Math.random()-0.5), 0,
+                                            zoneConnection.scale.z * (Math.random()-0.5)));
         }
         // deactivate zone until the zone is left
         zoneConnection.justEntered = true;
 
         // remove the old chunk
-        screen.removeFromScene(state.chunk);
+        cleanupChunk();
       }
+
+      network.send('chunk_transition', chunkName);
 
       // add the new chunk
       state.chunk = chunk;
-      screen.addToScene(state.chunk);
+      state.scene.add(state.chunk);
 
       // update the player and camera position
       // TODO: do this in explore.js to consolidate camera offset

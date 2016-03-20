@@ -22,13 +22,6 @@ Collision.resolveChunkWalls = function(position, movement, radius) {
         var amount = radius - intersect;
         var adjustment = normal.normalize().multiplyScalar(amount);
         newMovement.add(new THREE.Vector3(adjustment.x, 0, adjustment.y));
-/*
-        var move2d = new THREE.Vector2(newMovement.x, newMovement.z);
-        var projection = project(move2d, new THREE.Vector2(pt2.x-pt1.x, pt2.y-pt1.y));
-        var rejection = move2d.sub(projection).normalize().multiplyScalar(intersect*0.9);
-        newMovement.add(new THREE.Vector3(-rejection.x, 0, -rejection.y));
-        */
-        console.log('intersect', newMovement);
       }
     }
   });
@@ -57,7 +50,5 @@ var test = function() {
 
   console.log(project(new THREE.Vector2(2, 1), new THREE.Vector2(1, 0)))
 }
-
-test();
 
 module.exports = Collision;

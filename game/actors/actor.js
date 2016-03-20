@@ -10,7 +10,7 @@ module.exports.create = function(data) {
 
   var light = new THREE.PointLight(actorMaterial.color, 1, 100, 2);
   light.position.y = 0.5;
-  actor.add(light);
+  //actor.add(light);
 
   actor.position.y = 0.5;
   actor.parts = [];

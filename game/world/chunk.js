@@ -52,6 +52,7 @@ var createChunk = module.exports.createChunk = function(data) {
 
   var terrain = objLoader.parse(data.terrain);
   chunk.terrain = terrain;
+  chunk.terrain.receiveShadow = true;
   chunk.add(chunk.terrain);
 
   // load all the zones, and set metadata
