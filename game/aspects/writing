@@ -1,0 +1,211 @@
+input
+  left click      fast attack
+  right click     slow attack
+  wasd            move
+  mouse move      aim
+
+  r bumper        fast attack
+  l bumper        slow attack
+  left stick      move
+  right stick     aim
+
+
+
+conflict complications
+  collision objects
+  danger zones (dot, timed)
+  systems: insert cause-effect inbetween cause-effect chains
+
+systems (brogue)
+  fire -> sets fire to flammable -> burned objects damaged, spreads fire
+  spells -> leaves magic essence -> builds up until threshold -> dissipates over time
+  magic essence -> triggered by spells -> bursts into force + damage
+  language -> babel -> nonsense
+  clouds of gaseous (magic, language, gas, rain, poison, virus)
+
+conflict (converging towards arcade (bomberman aesthetic))
+  turn based vs free time // free
+  grid based vs free movement // free
+  select ability vs press ability btn // press
+
+options:
+  choose 1-2 conflict, 0-1 magjick, 0-1 feud
+  additive classes: collect classes, but can only have one of a set active?
+
+1 CONFLICT / 1 MAJICK / 1 FEUD / 0+ LESSER
+
+combinations of classes: options
+combat / magic / allegiance
+Pug/Tele/Def -> ranged punches
+Alc/Bio/Cart -> grow chemicals free
+
+-> each combination gives special synthesis abilities
+
+abilities are useful in overworld as well as combat (see Golden Sun)
+  movement, obstacles (creating, removing), combat
+
+punch, burn, burst, cloak, growth, water, blink, teleport, haste, slow, rune+combat, reveal
+obstacles:
+  rocks (burst, grow)
+  plants (burn, grow) vines to climb, root bridge
+  rivers (teleport, freeze?)
+  pits (summon, water->freeze)
+  statues (cloak, punch(move))
+
+progression is ability mutation
+progression is quests to find source of progression reward
+  ability mutation -> teacher, orb of knowledge, implement
+  class -> school, teacher
+all progression choices should block off other progression paths
+
+attributes
+  elemental affinity
+  defensive
+  create obstacles (natural, crafted walls, traps)
+
+try to have each class have at least 3 interesting, unique interactions with other classes
+
+
+
+structure (pick 3 classes to use from each class category)
+  basic attack (conflict)
+  conflict ability (conflict)
+  utility ability (conflict / explore)
+  movement ability (explore)
+
+other structure (pick one per slot from any class you have)
+  primary ability (op, short cooldown, flashy)
+  secondary ability (heavy hitter, longer cooldown, mechanical)
+  tertiary ability (passive or low effect, always on or no cooldown, utility)
+
+all abilities individiually are super op especially in very limited situations
+abilities should have synergetic effects when combined with others of the same rank
+abilities can be improved but only by locking into an upgrade path
+
+pugilist
+  punch
+  elemental punch
+  hadoken
+  shattering fist
+
+alchemist
+  chemical bomb
+  healing bomb
+  holy water
+  confusion / hallucination / blinding
+  smoke screen
+
+occultist
+  tarot cards (randomized effects)
+  summon / control summoned (leaves when combat ends)
+  knows health of players
+
+teleportman
+  blink (short distance, short cooldown, unreliable)
+    faster, damage effect on arrival
+  teleport (specify name, long distance, slow)
+    mass, random
+  haste, slow (increase speed of ally, decrease speed of enemy, passive area effect)
+
+biomancer
+  vine whip (poison damage)
+  rose hedge (build walls)
+  passive heals
+
+runeomancer
+  antimagic area effect
+
+
+
+
+classes
+-------
+
+  CONFLICT (mostly offensive) choose up to two (0, 1, 2)
+Pugilist - fists
+  Like a cleric, but fists, and not a cleric
+Occultist -
+  Symbols, summon demons, hexes
+Alchemist - thrown potions
+  Craft potions, thrown, splash
+
+  MAGICK (mostly utility)
+Telemancer
+  Teleportation and transportation magicks, blink, haste, slow
+Runeomancer
+  Writs runes, lays traps, programmatic, storage
+Biomancer
+  Grows plants, obstruction, growth (size)
+
+  LESSER
+Astronomer
+Psychopomp
+Carpenter
+Cartographer - neutral alliance
+  - explore the world, find useful information and trade it with those who seek it
+    -- find gem, sell location to gemwarden,warrior without getting involved
+    -- find mob cavern, trade location with levellers
+    -- create maps, trade maps
+
+  ANCIENT FEUD (choose one, no right answer)
+Gemwarden
+  Defend gems bring them to seats of power
+  Collect passive gem abilities from aided gems (lasts longer, esp if you can protect gems from warriors)
+Gemwarrior
+  Destroy gems, remove them from seats of power
+  Absorb gem abilities (stronger abilities, lasts shorter amount of time, have to get past wardens)
+
+
+
+ABILITIES
+
+pugilist
+  punch doer
+  push / relocate / rush,charge
+  elemental affinity
+
+alchemist
+  item based
+  acid, heal, fire, juice,
+  alchemist's belt: holds 3 item types (few/few/many)
+    few acid bombs
+    few heal bombs
+    many fire bombs
+  choose what items to prepare ahead of time
+
+occultist
+  summon allies
+  can/can't control?
+
+teleporter
+  movement
+  blink/teleport/transport
+  speed/range/area
+
+biomancer
+  grow plant
+  see health of players
+
+rune doer
+  item based
+  limited number allowed in overworld: 3-4
+  magic unique to runes:
+
+  cast magic from other classes on a rune and place on a tile, or in overworld as trap
+    bind rune -> trap -> jump out of bushes when someone gets trapped by it
+    fire rune -> place a few -> bait enemy group into
+
+gemwarden
+  big sords
+  protects gems
+  find gems and bring them to hidden places to protect
+  each gem under protection gives a paasive bonus
+
+gemwarrior
+  has a sowrd
+  destroys gems
+  have to go play hide and seek and find where wardens have hidden gems
+
+cartographer
+  proc gen environment
+  or landmarks, shifting terrain, obstacles, x marks the spot

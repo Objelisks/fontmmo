@@ -1,11 +1,11 @@
 /* global THREE */
-var state = require('./game/state.js');
-var screens = require('./game/screens/screens.js');
+const state = require('./game/state.js');
+const screens = require('./game/screens/screens.js');
 
-var width = 1024,
+let width = 1024,
     height = 768;
 
-var renderer = new THREE.WebGLRenderer({
+let renderer = new THREE.WebGLRenderer({
   antialias: true
 });
 renderer.setSize(width, height);
@@ -20,15 +20,15 @@ state.screen = screens.game;
 state.screen.create({character: {}});
 
 // main render, update loop
-var clock = new THREE.Clock(true);
-var render = function() {
-  var screen = state.screen;
+let clock = new THREE.Clock(true);
+let render = function() {
+  let screen = state.screen;
   requestAnimationFrame(render);
 
   renderer.render(state.scene, state.camera);
 
   // TODO: decouple update from rendering
-  var delta = clock.getDelta();
+  let delta = clock.getDelta();
   screen.update(delta);
   // switch screens if needed
   if(screen.transition) {

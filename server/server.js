@@ -1,10 +1,16 @@
-var io = require('socket.io')();
-var statServer = require('socket.io')();
-var StaticServer = require('static-server');
-var os = require('os');
+const THREE = require('../static/three.min.js');
+global.THREE = THREE;
+
+const io = require('socket.io')();
+const StaticServer = require('static-server');
+const os = require('os');
+const fs = require('fs');
+const actor = require('../game/objects/actor.js');
+const createChunk = require('../game/world/chunk.js').createChunk;
+const importer = require('../game/world/import.js');
 
 // deploy file server
-var server = new StaticServer({
+let server = new StaticServer({
   rootPath:'./static/',
   port: 8080
 });
@@ -12,8 +18,9 @@ server.start();
 
 /*
 // deploy statistics server
-var staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
-var dynamicStats = ['freemem', 'loadavg', 'uptime'];
+const statServer = require('socket.io')();
+let staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
+let dynamicStats = ['freemem', 'loadavg', 'uptime'];
 
 statServer.on('connection', function(socket) {
   socket.emit('spec', staticStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {}));
@@ -23,87 +30,90 @@ statServer.on('connection', function(socket) {
 statServer.listen(8082);
 */
 
+let loadChunk = function(name) {
+  let content = JSON.parse(fs.readFileSync(`./static/models/chunks/${name}.json`));
+  let chunk = createChunk(content);
+  chunk.sockets = [];
+  return chunk;
+};
+let playerData = JSON.parse(fs.readFileSync('./server/playerData.json'));
+let chunks = {};
 
-// generate increasing ids
-// might need to store this in a file later if persistence is needed
-var ids = {};
-var genId = function(type) {
-  if(ids[type] === undefined) {
-    ids[type] = 0;
-  }
-  ids[type] += 1;
-  return ids[type];
-}
-
-/* deploy game server */
+// deploy game server
 io.on('connection', function(socket) {
   // store per-client info here
-  socket.meta = {};
-  socket.history = [];
+  socket.meta = {
+    index: null,
+    history: []
+  };
 
   // sent to server on connect
-  socket.on('hello', function(playerName, fn) {
+  socket.on('hello', function(authentication, fn) {
+    console.log('hello', authentication.username);
+    // TODO: validate authentication
+    let playerName = 'objelisks';
+    let data = playerData[playerName];
+
+    // TODO: default playerData if non-existant
+
+    // generate player model from stored customization parameters
+    socket.meta.player = actor.create(data.player);
+
+    // load stored player location
+    socket.meta.currentChunk = data.chunk || "waterfall";
+    socket.meta.player.position.x = data.location.x;
+    socket.meta.player.position.z = data.location.z;
+
+    // load chunk if needed
+    if(chunks[socket.meta.currentChunk] === undefined) {
+      chunks[socket.meta.currentChunk] = loadChunk(socket.meta.currentChunk);
+    }
+    let activeChunk = chunks[socket.meta.currentChunk];
+    activeChunk.sockets.push(socket);
+
     // generate player id
-    var id = genId('player');
-    socket.meta.id = id;
+    let index = activeChunk.addObject(socket.meta.player);
+    socket.meta.index = index;
 
-    // load stored player data
-    // set up location
-    // socket.join(initialchunkroom);
-    // socket.currentChunk = initialchunkroom;
+    fn(data.player, index); // ack
 
-    console.log('HELLO', 'generated player', id, playerName);
-    fn(id); // ack
+    // join chunk room, tell everyone else we're here
+    socket.join(socket.meta.currentChunk);
+    socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: playerData[playerName].player});
 
-    // send list of connected ids to new client
-    // send new client id to existing clients
-    var connected = io.sockets.connected;
-    var existingIds = Object.keys(connected).map((key) => connected[key].meta.id);
-    socket.emit('new', {ids: existingIds});
-    socket.broadcast.emit('new', {ids: [id]});
+    // tell socket player about actors in the current chunk
+    let chunkObjects = activeChunk.getObjectsMessage();
+    socket.emit('objects', chunkObjects);
   });
 
   // validate movement
-  socket.on('move', function(msg, fn) {
-
-    // store packet history (data + time)
-    msg.recvDate = new Date();
-    socket.history.push(msg);
-    if(socket.history.length > 3) {
-      socket.history.shift();
-    }
-
-    // TODO: collision check / movement validation
-    if(Math.random() < 0.1) {
-      //cheat detection
-      // check move speed
-      // calc speed = pos2-pos1/time
-      // do a thing if speed is greater than it should be
-      // check collision
-    }
-
-    // if everything checks out
-    // send update to each other client
-    socket.broadcast.in(socket.currentChunk).emit('move', {id: msg.id, x: msg.x, y: msg.y, f: msg.f});
-
-    // tell player they're good to go
-    //fn(true);
-  });
-
-  socket.on('chunk_transition', function(msg) {
-    console.log(msg);
-    socket.broadcast.in(socket.currentChunk).emit('leave', {ids: [socket.meta.id]});
-    socket.leave(socket.currentChunk);
-    socket.join(msg);
-    socket.currentChunk = msg;
-    socket.broadcast.in(socket.currentChunk).emit('new', {ids: [socket.meta.id]});
+  socket.on('input', function(msg) {
+    socket.meta.input = msg;
   });
 
   socket.on('disconnect', function() {
-    console.log('GOODBYE', 'player leave', socket.meta.id);
-    // cope with abandonment
-    socket.broadcast.emit('leave', {ids: [socket.meta.id]});
+    socket.broadcast.emit('leave', {id: socket.meta.index});
+
+    // TODO: cleanup chunk references
   });
 });
 
 io.listen(8081);
+
+setInterval(function() {
+  Object.keys(chunks).forEach(function(chunkName) {
+    let chunk = chunks[chunkName];
+    let inputs = {};
+    chunk.sockets.forEach((socket) => inputs[socket.meta.index] = socket.meta.input);
+
+    let events = chunk.update(1/15, inputs);
+    // TODO: figure out chunk transition
+    // TODO: zone check
+
+    chunk.sockets.forEach(function(socket) {
+      socket.emit('update', events);
+    });
+  });
+}, 66); // 1000/10
+
+console.log('running');

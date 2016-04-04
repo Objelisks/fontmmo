@@ -18,31 +18,12 @@ module.exports.update = function(delta) {
     return;
   }
 
-  // handle input and move player based on camera direction
-  var movement = new THREE.Vector3 (0,0,0);
-  movement.x += input.isDown('left') ? 1 : (input.isDown('right') ? -1 : 0);
-  movement.z += input.isDown('up') ? 1 : (input.isDown('down') ? -1 : 0);
-  if(movement.length() >= 0) {
-    var forward = state.camera.getWorldDirection();
-    var rotateAxis = forward.projectOnPlane(UP).normalize();
-    var rotation = new THREE.Quaternion().setFromUnitVectors(NORTH, rotateAxis);
-    movement.applyQuaternion(rotation);
-    movement.normalize();
-    movement.multiplyScalar(fixedDelta * moveSpeed);
-
-    var actualMovement = collision.resolveChunkWalls(state.player.position, movement, 0.5)
-
-    state.player.position.add(actualMovement);
-    state.player.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, actualMovement), 0.2);
-  }
-
-  //gridShader.SetVector ("_GridCenter", Vector4.Lerp(gridShader.GetVector("_GridCenter"), new Vector4 (transform.position.x, 0, transform.position.z, 0), 0.1f));
-
   // update main camera and shadow camera
   var cameraLocation = state.player.position.clone().add(cameraOffset);
+  var otherCameraLocation = state.player.position.clone().add(new THREE.Vector3(5,10,-5));
   state.camera.position.lerp(cameraLocation, 0.2);
   state.camera.lookAt(state.player.position);
-  state.light.shadow.camera.position.set(cameraLocation);
+  state.light.position.copy(otherCameraLocation);
 
   // Check to see if player is over any zones
   var zoneChecker = new THREE.Raycaster(state.player.position.clone().add(UP), UP.clone().negate());

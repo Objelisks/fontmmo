@@ -12,6 +12,10 @@ window.addEventListener('keyup', function(e) {
   e.preventDefault();
 });
 
+window.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+});
+
 module.exports.update = function(delta) {
   Object.keys(pressed).forEach(function (keyCode) {
     if(pressed[keyCode] === 2) {
@@ -25,11 +29,9 @@ var input = {
   'right': [68, 39],
   'up': [87, 38],
   'down': [83, 40],
-  'editor': [192], // ~
-  'add': [65], // a
-  'remove': [90], // z
-  'cycle left': [83], // s
-  'cycle right': [88] // x
+  'a': [],
+  'b': [],
+  'c': []
 }
 
 module.exports.isDown = function(key) {

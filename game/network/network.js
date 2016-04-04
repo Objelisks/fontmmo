@@ -1,93 +1,56 @@
 /* global THREE */
 const io = require('socket.io-client');
-const actor = require('../actors/actor.js');
+const objects = require('../objects/objects.js');
 const state = require('../state.js');
 
-var local_id = null;
-var playerName = 'objelisks';
+let socket = io(window.location.hostname + ':8081');
+let localOnly = false;
 
-var socket = io(window.location.hostname + ':8081');
+socket.on('update', function(data) {
+  if(localOnly) { return; }
 
-socket.on('connect', function() {
-  socket.emit('hello', playerName, function(id) {
-    local_id = id;
-    console.log('set local id', local_id);
+  data.forEach((dataPoint) => {
+    let obj = state.chunk.objects[dataPoint.index];
+    if(!obj) {
+      return;
+    }
+    obj.netTarget = dataPoint;
+    obj.netDirty = true;
   });
+
 });
 
-var updateSeparation = 100;
-
-module.exports.createNetUpdate = function(player) {
-  player.nextUpdate = window.performance.now() + updateSeparation;
-  return {
-    update: function(delta) {
-      var now = window.performance.now();
-      if(now > player.nextUpdate) {
-
-        // TODO: update to send input deltas
-        // TODO: prediction based on velocity
-        socket.emit('move', {id: local_id, x: player.position.x, y: player.position.z, f: player.rotation.z}, function(success) {
-          // TODO: fix prediction
-        });
-        player.nextUpdate = now + updateSeparation;
-      }
-    }
-  }
+let create = function(data) {
+  let obj = objects[data.type].create(data);
+  state.chunk.addObject(obj, data.index);
 };
 
-
-var idMap = {};
-
-socket.on('move', function(data) {
-  if(idMap[data.id]) {
-    var obj = idMap[data.id];
-    obj.netTarget = data;
-  }
-});
-
-module.exports.createNetReceiver = function(object, id) {
-  object.netId = id;
-  idMap[id] = object;
-  return {
-    update: function(delta) {
-      if(object.netTarget) {
-        object.position.lerp(new THREE.Vector3(object.netTarget.x, object.position.y, object.netTarget.y), 0.1);
-        //object.rotation.lerp(new THREE.Vector3(object.netTarget.x, object.netTarget.y, object.position.z), 0.5);
-      }
-    },
-    remove: function() {
-      delete object.netId;
-      delete idMap[id];
-    }
-  }
-}
-
-// TODO: use data to customize actor
-var createFromNetData = function(data) {
-  var obj = actor.create({});
-  return obj;
-}
-
-// {ids}
 socket.on('new', function(data) {
-  data.ids.forEach(function(id) {
-    if(id === local_id) return;
-    var obj = createFromNetData(id);
-    obj.addPart(module.exports.createNetReceiver(obj, id));
-    state.scene.add(obj);
-    state.networkActors.push(obj);
-  });
+  create(data);
 });
 
-// {ids}
+socket.on('objects', function(datas) {
+  datas.forEach(create);
+});
+
 socket.on('leave', function(data) {
-  data.ids.forEach(function(id) {
-    if(id === local_id) return;
-    state.scene.remove(idMap[id]);
-    state.networkActors.splice(state.actors.indexOf(obj), 1);
-  });
+  state.chunk.removeObj(data.index);
 });
 
+module.exports.login = function() {
+  let authentication = {
+    username: 'objelisks',
+    password: 'its a secret to everyone'
+  };
+  socket.emit('hello', authentication, function(data, index) {
+    console.log('local index', index, data);
+    module.exports.playerIndex = index;
+    let obj = objects.actor.create(data);
+    obj.localPlayer = true;
+    state.chunk.addObject(obj, index);
+  });
+}
 
-module.exports.on = socket.on.bind(socket);
-module.exports.send = socket.emit.bind(socket);
+module.exports.sendInputDelta = function(inputDelta) {
+  socket.emit('input', inputDelta);
+};

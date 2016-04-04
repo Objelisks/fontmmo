@@ -3,58 +3,13 @@ OPTIMIZATIONS
 use static vector copy instead of clone
 
 
-
-
-
-
-
-have chunks load in as we approach edge of current chunks
-optimize as much as possible based on top down camera perspective
-update server to send chunks when player is near edge
-chunks contain static models, including terrain
-chunks have collision maps
-
-also the server monitor
-server health
-connection stats
-character creation stats
-+graphs
-
-
-musings on chunks and server authority
-  too much work to track which chunks player is near...
-    need to check
-  player can ask for chunks
-    server responds with static data
-  dynamic data is sent to player based on which chunk they are currently in
-  if player can ask for chunks, player should ask for chunks always
-  so player shouldn't ask for chunks, and can never ask for chunks
-  as
-
-server architecture
-  player input events imply chunk location
-  keep track of active chunks on player
-
-edge cases:
-  can see 4 chunks at once
-  if player can ask, can ask for chunks they dont need/shouldn't see
-
-assume:
-  no extremely(one chunk per frame) fast moving objects
-  messages are not lost (reliable despite packet loss)
-
-alternatives:
-  drop streaming of data, and make entering a chunk a deliberate user action
-  enter/exit zones ->
-
-
 chunk definition A: streamed chunks
   square shape
   load nearest 3 chunks
   whole area is navigable
   list of collider objects
 
-chunk definition B: diorama graph
+chunk definition B: diorama graph  <==  WINNER
   arbitrary polygon shape
   load connected chunk on exit
   enter/exit zones marked
@@ -87,24 +42,18 @@ future needs from editor:
 
 
 
-
-
-TODO LIST
+LIST
 ---------
-chunk loading, saving
-server serving chunks based on position
-client sending input delta instead of abs
-movement mechanics / collision
-chunk editor
-admin mode
+decoration, interaction with
+decoration collision
+gas effects, simulation of gas
+server authority
 character creator
 character classes
 abilities
 ability effects / affects
 vaporwave
 
-11
-8+2+1
 
 screens
   press start
@@ -121,85 +70,21 @@ controls
     (R)eceptacles   / (P)ockets
 
 
-classes
--------
-
-  CONFLICT (mostly offensive) choose up to two (0, 1, 2)
-Pugilist - fists
-  Like a cleric, but fists, and not a cleric
-Occultist -
-  Symbols, summon demons, hexes
-Alchemist - thrown potions
-  Craft potions, thrown, splash
-
-  MAGICK (mostly utility)
-Telemancer
-  Teleportation and transportation magicks, blink, haste, slow
-Runeomancer
-  Writs runes, lays traps, programmatic, storage
-Biomancer
-  Grows plants, obstruction, growth (size)
-
-  LESSER
-Astronomer
-Psychopomp
-Carpenter
-Cartographer - neutral alliance
-  - explore the world, find useful information and trade it with those who seek it
-    -- find gem, sell location to gemwarden,warrior without getting involved
-    -- find mob cavern, trade location with levellers
-    -- create maps, trade maps
-
-  ANCIENT FEUD (choose one, no right answer)
-Gemwarden
-  Defend gems bring them to seats of power
-  Collect passive gem abilities from aided gems (lasts longer, esp if you can protect gems from warriors)
-Gemwarrior
-  Destroy gems, remove them from seats of power
-  Absorb gem abilities (stronger abilities, lasts shorter amount of time, have to get past wardens)
-
-
-
-
-options:
-  choose 1-2 conflict, 0-1 magjick, 0-1 feud
-  additive classes: collect classes, but can only have one of a set active?
-
-1 CONFLICT / 1 MAJICK / 1 FEUD / 0+ LESSER
-
-
-combinations of classes: options
-combat / magic / allegiance
-Pug/Tele/Def -> ranged punches
-Alc/Bio/Cart -> grow chemicals free
-
--> each combination gives special synthesis abilities
-
-abilities are useful in overworld as well as combat (see Golden Sun)
-  movement, obstacles (creating, removing), combat
-
-punch, burn, burst, cloak, growth, water, blink, teleport, haste, slow, rune+combat, reveal
-obstacles:
-  rocks (burst, grow)
-  plants (burn, grow) vines to climb, root bridge
-  rivers (teleport, freeze?)
-  pits (summon, water->freeze)
-  statues (cloak, punch(move))
-
 terrain
 -------
-grid: 1bitmap texture gives collision map
-naturally adheres to grid
+hmm maybe fuck the grid???
+  grid: 1bitmap texture gives collision map
+  naturally adheres to grid
 non-playable area does not need to conform to grid
   river might widen, but edges should cleanly fit grid edges
   each subarea should give an interesting battle arena
     break up with collidable objects
 
 FOREST ZONE
-  trees, bushs, small boulders, river, cool leafs shader
+  trees, bushs, small boulders, river, cool leafs shader, paths
 
 MOUNTAIN ZONE
-  rocks, cliffs,
+  rocks, cliffs, paths
 
 
 
@@ -209,15 +94,15 @@ world building
 villages
 npcs
 neutral mobs (only in groups)
-chunky soft rocks
+chunky soft rocks, crystalline structure, grown
 world contains no metals
   glass, wood, organic(vine, moss, grass), paper, rock(obsidian, crystal)
   orthogonal high fantasy concept
     can extend tech as far as possible minus metal
     no nails (except wood/stone), swords(obsidian)
-    no tall structures, localized farming only
+    no tall structures, localized farming only (stone tools)
     weapons: hand-to-hand, leather, wood, stone, obsidian(rare), magical
-    armor: leather, wood, magical
+    armor: leather, wood, magical, aesthetics more important
 goals:
   GEMWAR
   TOWNBUILD??
@@ -229,57 +114,16 @@ inspiro
   Weird Twitter
   Codex Seraphinianus
   Steven Universe
-  Cool Rocks
+  Cool looking rocks
   North of Reality
 
 
-
-
-chunks are 200x200 square areas
-server needs to send data
-chunk data:
-  heightmap: data64
-  objects: [{id, pos, rot}]
-client then needs to grab all the referenced objects
-
-terrain memory cleanup clientside
-  worst case scenario, client has four chunks visible
-  keep current chunk + 3 nearest chunks
-
-
-flat ground + object instances
-  collision for objects only
-
-first thing is:
-  get server to send object collection
-
-server collision
-
-
-level editor (clientside)
-  press ~ to toggle
-  a - spawn instance of current object
-  z - delete nearest object
-  s/d - cycle current selected object
-
-editor (serverside)
-  save: saves passed chunk data
-
-
-
 modes
-  exploreMode -> editorMode
   exploreMode -> conflictMode
-  editorMode -> exploreMode
   conflictMode -> exploreMode
 
 needs to be able to switch active module
 needs to be able to interact with controlled player/minions
-
-api:
-  update
-
-
 
 
 game actions
@@ -290,81 +134,9 @@ game actions
   interact
     talk to npcs, use abilities on terrain
 
-exploration and conflict are separate, so that during exploration, we don't need
-to simulate other players (their actions cannot have an effect on local player).
-During conflict, we have lock-step interaction, but the interaction is turn based
-and not real time
-
-
-
-decisions:
-preemptive chunk sending, player asks for chunks
-tile based vs polygon based collision maps
-
 
 TODO: rate limiting on all apis per ip (not connection)
 
-
-
-ABILITIES
-
-pugilist
-  punch doer
-  push / relocate / rush,charge
-  elemental affinity
-
-alchemist
-  item based
-  acid, heal, fire, juice,
-  alchemist's belt: holds 3 item types (few/few/many)
-    few acid bombs
-    few heal bombs
-    many fire bombs
-  choose what items to prepare ahead of time
-
-occultist
-  summon allies
-  can/can't control?
-
-teleporter
-  movement
-  blink/teleport/transport
-  speed/range/area
-
-biomancer
-  grow plant
-  see health of players
-
-rune doer
-  item based
-  limited number allowed in overworld: 3-4
-  magic unique to runes:
-
-  cast magic from other classes on a rune and place on a tile, or in overworld as trap
-    bind rune -> trap -> jump out of bushes when someone gets trapped by it
-    fire rune -> place a few -> bait enemy group into
-
-gemwarden
-  big sords
-  protects gems
-  find gems and bring them to hidden places to protect
-  each gem under protection gives a
-
-gemwarrior
-  has a sowrd
-  destroys gems
-  have to go play hide and seek and find where wardens have hidden gems
-
-cartographer
-  proc gen environment
-  or landmarks, shifting terrain, obstacles, x marks the spot
-
-
-progression is ability mutation
-progression is quests to find source of progression reward
-  ability mutation -> teacher, orb of knowledge, implement
-  class -> school, teacher
-all progression choices should block off other progression paths
 
 
 health is small integer: 4
@@ -381,11 +153,3 @@ simple inventory
     unlimited use in overworld, limited to 3/5/9 uses in conflict
   many:
     functions as item, but unlimited uses, some items(specialized pouch) or ability mutation can increase few -> many
-
-
-attributes
-  elemental affinity
-  defensive
-  create obstacles (natural, crafted walls, traps)
-
-try to have each class have at least 3 interesting, unique interactions with other classes
