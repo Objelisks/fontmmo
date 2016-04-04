@@ -9,25 +9,52 @@ let project = function(a, b) {
 
 Collision.resolveChunkWalls = function(obj, movement, radius) {
   let chunk = obj.chunk;
-  let tempLocation = obj.position.clone().add(movement);
-  let newMovement = movement.clone();
+
+  let testOffsets = [];
+
+  let offset = radius;
+  let remainder = movement.length();
+  while(remainder > offset) {
+    testOffsets.push(offset);
+    remainder -= offset;
+  }
+  testOffsets.push(remainder);
+
+  let newMovement = new THREE.Vector3();
+  let minMovement = movement.clone();
+  let adjustments = new THREE.Vector3();
+  let doneHelper = false;
 
   chunk.walls.forEach(function(wall) {
     let count = wall.length;
     for(let i=0; i<count; i++) {
       let pt1 = wall[i];
       let pt2 = wall[(i+1)%count];
-      let intersect = Collision.getIntersection(tempLocation, radius, pt1.x, pt1.z, pt2.x, pt2.z);
-      if(intersect !== null) {
-        // TODO: add something to keep object on same side it started
-        let normal = new THREE.Vector2(-(pt1.z-pt2.z), pt1.x-pt2.x);
-        let amount = radius - intersect;
-        let adjustment = normal.normalize().multiplyScalar(amount);
-        newMovement.add(new THREE.Vector3(adjustment.x, 0, adjustment.y));
-      }
-    }
-  });
-  return newMovement;
+      newMovement.set(0,0,0);
+
+      let penetrated = false;
+      let hit = testOffsets.forEach(function(offset, i) {
+        let step = movement.clone().setLength(offset);
+        newMovement.add(step);
+
+        if(penetrated) {
+          adjustments.add(step.negate());
+          return;
+        }
+
+        let intersect = Collision.getIntersection(newMovement.clone().add(obj.position), radius, pt1.x, pt1.z, pt2.x, pt2.z);
+        if(intersect !== null) {
+          // NOTE: moves towards inside of clockwise specified polygon
+          penetrated = true;
+          let normal = new THREE.Vector2(-(pt1.z-pt2.z), pt1.x-pt2.x);
+          let amount = radius - intersect;
+          let adjustment = normal.setLength(amount);
+          adjustments.add(new THREE.Vector3(adjustment.x, 0, adjustment.y));
+        }
+      }); // end offsets some
+    } // end for
+  }); // end walls each
+  return movement.clone().add(adjustments);
 }
 
 Collision.getIntersection = function(position, radius, x1, y1, x2, y2) {

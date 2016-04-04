@@ -16,6 +16,8 @@ let width = 1024,
     height = 768;
 
 screen.create = function(data) {
+  state.client = true;
+
   let scene = new THREE.Scene();
   state.scene = scene;
 

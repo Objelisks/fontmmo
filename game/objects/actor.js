@@ -1,5 +1,6 @@
 /* global THREE */
 const collision = require('../interact/collision.js');
+const state = require('../state.js');
 
 let actorMaterial = new THREE.MeshStandardMaterial({ color: 0x6DA0A5, roughness:1.0, metalness:0.0 });
 let FORWARD = new THREE.Vector3(-1, 0, -1).normalize();
@@ -8,14 +9,19 @@ let NORTH = new THREE.Vector3(0,0,1);
 
 let actorMethods = {
   update: function(delta, input) {
-    if(this.netDirty) {
+
+    // lerp in server authoritative position
+    if(state.client && this.netDirty) {
       let target = new THREE.Vector3(this.netTarget.x, this.position.y, this.netTarget.z);
       this.netVelocity = target.clone().sub(this.position).multiplyScalar(delta);
-      this.position.copy(target);
+      if(target.distanceTo(this.position) > 0.5) {
+        this.position.lerp(target, 0.1);
+      }
       //this.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, this.netVelocity), 0.2);
       this.netDirty = false;
-      //return;
-    } // else
+    }
+
+    // client prediction
 
     if(input === undefined) {
       input = {
@@ -36,9 +42,9 @@ let actorMethods = {
 
       // collision
       // TODO: handle object collision (before wall collision)
-      movement = collision.resolveChunkWalls(this, movement, 0.5);
+      let actualMovement = collision.resolveChunkWalls(this, movement, 0.5);
 
-      this.position.add(movement);
+      this.position.add(actualMovement);
     }
 
     this.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, movement), 0.2);
