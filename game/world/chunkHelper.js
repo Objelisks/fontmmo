@@ -1,5 +1,7 @@
 let chunk = {};
 
+// update all children
+// returns a list of changes to active objects
 chunk.update = function(delta, inputMap) {
   let events = [];
   inputMap = inputMap || {};
@@ -9,17 +11,22 @@ chunk.update = function(delta, inputMap) {
     let oldPos = obj.position.clone();
     obj.update(delta, inputMap[objIndex]);
     if(oldPos.sub(obj.position).length() > 0) {
+      // movement events
       events.push({
         index: obj.index,
         x: obj.position.x,
         z: obj.position.z
       });
     }
+    // test zones, zone events
+    //let zones = chunk.getZoneEvents(obj.position);
+    //events.concat(zones);
   });
 
   return events;
 };
 
+// used for server sending initial data
 chunk.getObjectsMessage = function() {
   return Object.keys(this.objects).map((objIndex) => {
     let obj = this.objects[objIndex];
@@ -39,6 +46,20 @@ let genIndex = (function() {
     return index;
   }
 })();
+
+chunk.getZoneEvents = function(obj) {
+  let events = [];
+  chunk.zones.forEach(function(zone) {
+    if(Collision.pointInRectangle(obj.position.x, obj.position.z, zone.a, zone.b, zone.d)) {
+      events.push({
+        index: obj.index,
+        type: 'exit',
+        connection: zone.connection
+      });
+    }
+  });
+  return events;
+};
 
 chunk.addObject = function(obj, existingIndex) {
   let index = existingIndex || genIndex();

@@ -44,12 +44,13 @@ io.on('connection', function(socket) {
   // store per-client info here
   socket.meta = {
     index: null,
-    history: []
+    player: null,
+    currentChunk: null,
   };
 
   // sent to server on connect
   socket.on('hello', function(authentication, fn) {
-    console.log('hello', authentication.username);
+    //console.log('hello', authentication.username);
     // TODO: validate authentication
     let playerName = 'objelisks';
     let data = playerData[playerName];
@@ -74,6 +75,7 @@ io.on('connection', function(socket) {
     // generate player id
     let index = activeChunk.addObject(socket.meta.player);
     socket.meta.index = index;
+    console.log('hello', socket.meta.index);
 
     fn(data.player, index); // ack
 
@@ -92,7 +94,10 @@ io.on('connection', function(socket) {
   });
 
   socket.on('disconnect', function() {
+    console.log('goodbye', socket.meta.index);
     socket.broadcast.emit('leave', {id: socket.meta.index});
+    console.log(socket.meta.currentChunk);
+    chunks[socket.meta.currentChunk].removeIndex(socket.meta.index);
 
     // TODO: cleanup chunk references
   });

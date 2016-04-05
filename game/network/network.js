@@ -15,7 +15,7 @@ socket.on('update', function(data) {
       return;
     }
     obj.netTarget = dataPoint;
-    obj.netDirty = true;
+    obj.netFrames = 0;
   });
 
 });
@@ -45,9 +45,6 @@ module.exports.login = function() {
   socket.emit('hello', authentication, function(data, index) {
     console.log('local index', index, data);
     module.exports.playerIndex = index;
-    let obj = objects.actor.create(data);
-    obj.localPlayer = true;
-    state.chunk.addObject(obj, index);
   });
 }
 

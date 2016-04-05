@@ -57,7 +57,11 @@ screen.update  = function(delta) {
   let inputDelta = input.update(delta);
   network.sendInputDelta(inputDelta);
 
-  if(network.playerIndex) {
+  if(inputDelta.a) {
+    console.log(state.chunk.objects);
+  }
+
+  if(network.playerIndex && state.chunk.objects[network.playerIndex]) {
     var inputMap = {};
     inputMap[network.playerIndex] = inputDelta;
     state.chunk.update(delta, inputMap);
