@@ -2,7 +2,6 @@
 const actor = require('../objects/actor.js');
 const input = require('../control/input.js');
 const network = require('../network/network.js');
-const modes = require('./modes/modes.js');
 const importer = require('../world/import.js');
 const state = require('../state.js');
 
@@ -44,7 +43,9 @@ screen.create = function(data) {
 
   state.scene.add(fadeObject);
 
-  screen.enterChunk('waterfall').then(() => network.login());
+  network.login();
+
+  //screen.enterChunk('waterfall').then(() => network.login());
 }
 
 screen.destroy = function() {
@@ -61,7 +62,7 @@ screen.update  = function(delta) {
     console.log(state.chunk.objects);
   }
 
-  if(network.playerIndex && state.chunk.objects[network.playerIndex]) {
+  if(network.playerIndex && state.chunk && state.chunk.objects[network.playerIndex]) {
     var inputMap = {};
     inputMap[network.playerIndex] = inputDelta;
     state.chunk.update(delta, inputMap);

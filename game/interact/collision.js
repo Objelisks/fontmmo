@@ -70,4 +70,13 @@ Collision.intersectCircleLineSegment = function(position, radius, x1, y1, x2, y2
   }
 }
 
+Collision.pointInRectangle = function(x, y, a, b, d) {
+  let am = new THREE.Vector2(a.x-x, a.z-y);
+  let ab = new THREE.Vector2(a.x-b.x, a.z-b.z);
+  let ad = new THREE.Vector2(a.x-d.x, a.z-d.z);
+  let amab = am.dot(ab);
+  let amad = am.dot(ad);
+  return (amab < ab.lengthSq()) && (amab > 0) && (amad < ad.lengthSq()) && (amad > 0);
+}
+
 module.exports = Collision;

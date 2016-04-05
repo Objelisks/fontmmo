@@ -30,14 +30,48 @@ statServer.on('connection', function(socket) {
 statServer.listen(8082);
 */
 
+let chunks = {};
 let loadChunk = function(name) {
-  let content = JSON.parse(fs.readFileSync(`./static/models/chunks/${name}.json`));
-  let chunk = createChunk(content);
-  chunk.sockets = [];
-  return chunk;
+  if(chunks[name] === undefined) {
+    let content = JSON.parse(fs.readFileSync(`./static/models/chunks/${name}.json`));
+    let chunk = createChunk(content);
+    chunk.sockets = {};
+    chunks[name] = chunk;
+  }
+  return chunks[name];
 };
 let playerData = JSON.parse(fs.readFileSync('./server/playerData.json'));
-let chunks = {};
+
+let enterChunk = function(chunk, socket) {
+  // generate player id
+  let index = chunk.addObject(socket.meta.player);
+  chunk.sockets[index] = socket;
+  socket.meta.index = index;
+  socket.meta.currentChunk = chunk.name;
+  socket.meta.ready = false;
+
+  // join chunk room, tell everyone else we're here
+  socket.join(socket.meta.currentChunk);
+  // TODO: fix player data
+  socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: {}});
+}
+
+let leaveChunk = function(chunk, socket) {
+  let oldIndex = socket.meta.index;
+
+  // remove references in chunk object
+  chunk.removeIndex(oldIndex);
+  delete chunk.sockets[oldIndex];
+
+  // leave room
+  socket.broadcast.in(socket.meta.currentChunk).emit('leave', {index: oldIndex});
+  socket.leave(socket.meta.currentChunk);
+
+  // null out other data
+  socket.meta.index = null;
+  socket.meta.currentChunk = null;
+  socket.meta.ready = false;
+}
 
 // deploy game server
 io.on('connection', function(socket) {
@@ -61,31 +95,27 @@ io.on('connection', function(socket) {
     socket.meta.player = actor.create(data.player);
 
     // load stored player location
-    socket.meta.currentChunk = data.chunk || "waterfall";
+    let chunkName = data.chunk || "waterfall";
     socket.meta.player.position.x = data.location.x;
     socket.meta.player.position.z = data.location.z;
 
     // load chunk if needed
-    if(chunks[socket.meta.currentChunk] === undefined) {
-      chunks[socket.meta.currentChunk] = loadChunk(socket.meta.currentChunk);
-    }
-    let activeChunk = chunks[socket.meta.currentChunk];
-    activeChunk.sockets.push(socket);
+    let activeChunk = loadChunk(chunkName);
 
-    // generate player id
-    let index = activeChunk.addObject(socket.meta.player);
-    socket.meta.index = index;
+    enterChunk(activeChunk, socket);
+
     console.log('hello', socket.meta.index);
+    fn(data.player, socket.meta.index, chunkName); // ack
+  });
 
-    fn(data.player, index); // ack
+  socket.on('chunkReady', function() {
+    if(!socket.meta.ready) {
+      socket.meta.ready = true;
 
-    // join chunk room, tell everyone else we're here
-    socket.join(socket.meta.currentChunk);
-    socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: playerData[playerName].player});
-
-    // tell socket player about actors in the current chunk
-    let chunkObjects = activeChunk.getObjectsMessage();
-    socket.emit('objects', chunkObjects);
+      // tell socket player about actors in the new chunk
+      let chunkObjects = chunks[socket.meta.currentChunk].getObjectsMessage();
+      socket.emit('objects', chunkObjects);
+    }
   });
 
   // validate movement
@@ -95,11 +125,11 @@ io.on('connection', function(socket) {
 
   socket.on('disconnect', function() {
     console.log('goodbye', socket.meta.index);
-    socket.broadcast.emit('leave', {id: socket.meta.index});
-    console.log(socket.meta.currentChunk);
-    chunks[socket.meta.currentChunk].removeIndex(socket.meta.index);
+    if(chunks[socket.meta.currentChunk]) {
+      leaveChunk(chunks[socket.meta.currentChunk], socket);
+    }
 
-    // TODO: cleanup chunk references
+    // TODO: cleanup empty chunk references
   });
 });
 
@@ -109,14 +139,30 @@ setInterval(function() {
   Object.keys(chunks).forEach(function(chunkName) {
     let chunk = chunks[chunkName];
     let inputs = {};
-    chunk.sockets.forEach((socket) => inputs[socket.meta.index] = socket.meta.input);
+    Object.keys(chunk.sockets).forEach((key) => {
+      let socket = chunk.sockets[key];
+      inputs[key] = socket.meta.input;
+    });
 
     let events = chunk.update(1/15, inputs);
-    // TODO: figure out chunk transition
-    // TODO: zone check
 
-    chunk.sockets.forEach(function(socket) {
-      socket.emit('update', events);
+    events.filter(eve => eve.type === 'exit').forEach(function(zone) {
+      // for each exit zone event, perform some tasks
+      let obj = chunk.objects[zone.index];
+      let socket = chunk.sockets[zone.index];
+
+      let newChunk = loadChunk(zone.connection);
+      leaveChunk(chunk, socket);
+      enterChunk(newChunk, socket);
+
+      // TODO: set object position
+    });
+
+    Object.keys(chunk.sockets).forEach(function(key, i, arr) {
+      let socket = chunk.sockets[key];
+      if(socket.meta.ready) {
+        socket.emit('update', events);
+      }
     });
   });
 }, 66); // 1000/10

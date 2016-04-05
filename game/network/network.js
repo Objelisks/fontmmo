@@ -6,15 +6,22 @@ const state = require('../state.js');
 let socket = io(window.location.hostname + ':8081');
 let localOnly = false;
 
-socket.on('update', function(data) {
+socket.on('update', function(datas) {
   if(localOnly) { return; }
 
-  data.forEach((dataPoint) => {
-    let obj = state.chunk.objects[dataPoint.index];
+  datas.forEach((data) => {
+    if(data.type === 'exit') {
+      state.screen.enterChunk(data.connection).then(() => {
+        socket.emit('chunkReady');
+      });
+      return;
+    }
+
+    let obj = state.chunk.objects[data.index];
     if(!obj) {
       return;
     }
-    obj.netTarget = dataPoint;
+    obj.netTarget = data;
     obj.netFrames = 0;
   });
 
@@ -34,7 +41,7 @@ socket.on('objects', function(datas) {
 });
 
 socket.on('leave', function(data) {
-  state.chunk.removeObj(data.index);
+  state.chunk.removeIndex(data.index);
 });
 
 module.exports.login = function() {
@@ -42,9 +49,13 @@ module.exports.login = function() {
     username: 'objelisks',
     password: 'its a secret to everyone'
   };
-  socket.emit('hello', authentication, function(data, index) {
-    console.log('local index', index, data);
+  socket.emit('hello', authentication, function(playerData, index, chunkName) {
+    console.log('local index', index);
+    // TODO: customize player based on data
     module.exports.playerIndex = index;
+    state.screen.enterChunk(chunkName).then(() => {
+      socket.emit('chunkReady');
+    });;
   });
 }
 

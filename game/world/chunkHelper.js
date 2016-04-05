@@ -1,3 +1,5 @@
+const collision = require('../interact/collision.js');
+
 let chunk = {};
 
 // update all children
@@ -19,8 +21,8 @@ chunk.update = function(delta, inputMap) {
       });
     }
     // test zones, zone events
-    //let zones = chunk.getZoneEvents(obj.position);
-    //events.concat(zones);
+    let zones = this.getZoneEvents(obj);
+    events.concat(zones);
   });
 
   return events;
@@ -48,9 +50,39 @@ let genIndex = (function() {
 })();
 
 chunk.getZoneEvents = function(obj) {
+  // TODO: real zone checking
+  /*
+
+    // Check to see if player is over any zones
+    var zoneChecker = new THREE.Raycaster(state.player.position.clone().add(UP), UP.clone().negate());
+    var hits = zoneChecker.intersectObjects(state.chunk.zones);
+    var newActiveZones = [];
+
+    hits.forEach(function(zoneHit) {
+      var type = zoneHit.object.type;
+      // If we weren't in the zone last frame: enter, else stay
+      if(activeZones.indexOf(zoneHit.object) === -1) {
+        zones.enter(type, zoneHit);
+      } else {
+        zones.stay(type, zoneHit);
+      }
+
+      newActiveZones.push(zoneHit.object);
+    });
+
+    // For each of the zones which left the active set, call exit
+    activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
+      zones.exit(zone.type, zone);
+    });
+    activeZones = newActiveZones;
+  */
+
   let events = [];
-  chunk.zones.forEach(function(zone) {
-    if(Collision.pointInRectangle(obj.position.x, obj.position.z, zone.a, zone.b, zone.d)) {
+  this.zones.forEach(function(zone) {
+    let a = {x: 0, z: 0};
+    let b = {x: 0, z: 0};
+    let d = {x: 0, z: 0};
+    if(collision.pointInRectangle(obj.position.x, obj.position.z, a, b, d)) {
       events.push({
         index: obj.index,
         type: 'exit',
