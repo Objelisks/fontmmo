@@ -1,4 +1,6 @@
 const collision = require('../interact/collision.js');
+const zones = require('./zones.js');
+const state = require('../state.js');
 
 let chunk = {};
 
@@ -21,9 +23,6 @@ chunk.update = function(delta, inputMap) {
         z: obj.position.z
       });
     }
-    // test zones, zone events
-    let zones = this.getZoneEvents(obj);
-    events.concat(zones);
   });
 
   return events;
@@ -42,6 +41,7 @@ chunk.getObjectsMessage = function() {
   });
 };
 
+// TODO: currently global, index per chunk instead?
 let genIndex = (function() {
   let index = 0;
   return function() {
@@ -50,36 +50,38 @@ let genIndex = (function() {
   }
 })();
 
-chunk.getZoneEvents = function(obj) {
-  // Check to see if player is over any zones
-  this.activeZones = this.activeZones || [];
-  let newActiveZones = [];
-  let events = [];
+chunk.getZoneEvents = function() {
+  return Object.keys(this.objects).reduce((events, objIndex) => {
+    let obj = this.objects[objIndex];
+    // Check to see if player is over any zones
+    this.activeZones = this.activeZones || [];
+    let newActiveZones = [];
 
-  this.zones.forEach(function(zone) {
-    let a = {x: 0, z: 0};
-    let b = {x: 0, z: 0};
-    let d = {x: 0, z: 0};
-    if(collision.pointInRectangle(obj.position.x, obj.position.z, a, b, d)) {
-      let type = zone.type;
-      // If we weren't in the zone last frame: enter, else stay
-      if(this.activeZones.indexOf(zone) === -1) {
-        events.concat(zones.enter(type, zone));
-      } else {
-        events.concat(zones.stay(type, zone));
+    this.zones.forEach((zone) => {
+      let a = {x: zone.a.x, y: zone.a.z};
+      let b = {x: zone.b.x, y: zone.b.z};
+      let c = {x: zone.c.x, y: zone.c.z};
+      if(collision.pointInRectangle(obj.position.x, obj.position.z, a, b, c)) {
+        let type = zone.type;
+        // If we weren't in the zone last frame: enter, else stay
+        if(this.activeZones.indexOf(zone) === -1) {
+          events = events.concat(zones.enter(type, zone));
+        } else {
+          events = events.concat(zones.stay(type, zone));
+        }
+
+        newActiveZones.push(zone);
       }
+    });
+    // For each of the zones which left the active set, call exit
+    this.activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
+      events = events.concat(zones.exit(zone.type, zone));
+    });
+    this.activeZones = newActiveZones;
 
-      newActiveZones.push(zone);
-    }
-  });
-  // For each of the zones which left the active set, call exit
-  this.activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
-    events.concat(zones.exit(zone.type, zone));
-  });
-  this.activeZones = newActiveZones;
-
-  events = events.map(e => Object.assign(e, {index: obj.index}));
-  return events;
+    events = events.map(e => Object.assign(e, {index: obj.index}));
+    return events;
+  }, []);
 };
 
 chunk.addObject = function(obj, existingIndex) {

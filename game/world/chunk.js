@@ -55,7 +55,9 @@ module.exports.createChunk = function(data) {
   chunk.add(chunk.terrain);
 
   // load all the zones, and set metadata
-  chunk.zones = data.zones.map(function(zone) {
+  chunk.zones = data.zones;
+
+  /*.map(function(zone) {
     let box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
     box.position.set(zone.position.x, zone.position.y, zone.position.z);
     box.rotation.set(zone.rotation._x, zone.rotation._y, zone.rotation._z);
@@ -65,7 +67,7 @@ module.exports.createChunk = function(data) {
     box.connection = zone.connection;
     chunk.add(box);
     return box;
-  });
+  });*/
 
   // instantiate all the objects
   data.objects.forEach(function(obj) {

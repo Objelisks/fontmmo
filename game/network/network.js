@@ -15,6 +15,11 @@ let leave = function(data) {
   state.chunk.removeIndex(data.index);
 }
 
+let setIndex = function(index) {
+  console.log('local index', index);
+  module.exports.playerIndex = index;
+}
+
 socket.on('new', function(data) {
   create(data);
 });
@@ -28,8 +33,9 @@ socket.on('leave', function(data) {
 });
 
 socket.on('chunk', function(data) {
+  module.exports.playerIndex = null;
   state.screen.enterChunk(data.connection).then(() => {
-    socket.emit('chunkReady');
+    socket.emit('chunkReady', undefined, setIndex);
   });
 });
 
@@ -57,13 +63,11 @@ module.exports.login = function() {
     username: 'objelisks',
     password: 'its a secret to everyone'
   };
-  socket.emit('hello', authentication, function(playerData, index, chunkName) {
-    console.log('local index', index);
+  socket.emit('hello', authentication, function(playerData, chunkName) {
     // TODO: customize player based on data
-    module.exports.playerIndex = index;
     state.screen.enterChunk(chunkName).then(() => {
-      socket.emit('chunkReady');
-    });;
+      socket.emit('chunkReady', undefined, setIndex);
+    });
   });
 }
 

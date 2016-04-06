@@ -48,12 +48,26 @@ let enterChunk = function(chunk, socket) {
   chunk.sockets[index] = socket;
   socket.meta.index = index;
   socket.meta.currentChunk = chunk.name;
+
   socket.meta.ready = false;
 
   // join chunk room, tell everyone else we're here
   socket.join(socket.meta.currentChunk);
   // TODO: fix player data
   socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: {}});
+
+  if(socket.meta.leftChunk) {
+    // assume for now that connections are always two way
+    // find the corresponding connection zone and get a random point from it
+    let zone = chunk.zones.filter((zone) => zone.connection === socket.meta.leftChunk).pop();
+    if(zone) {
+      let outputPoint = new THREE.Vector3(zone.a.x, 0.5, zone.a.z);
+      outputPoint.add(new THREE.Vector3((zone.c.x-zone.a.x)*Math.random(), 0, (zone.c.z-zone.a.z)*Math.random()));
+      socket.meta.player.position.copy(outputPoint);
+    }
+    // deactivate zone until the zone is left
+    socket.meta.justEntered = true;
+  }
 }
 
 let leaveChunk = function(chunk, socket) {
@@ -68,8 +82,9 @@ let leaveChunk = function(chunk, socket) {
   socket.leave(socket.meta.currentChunk);
 
   // null out other data
-  socket.meta.index = null;
+  socket.meta.leftChunk = socket.meta.currentChunk;
   socket.meta.currentChunk = null;
+  socket.meta.index = null;
   socket.meta.ready = false;
 }
 
@@ -93,6 +108,7 @@ io.on('connection', function(socket) {
 
     // generate player model from stored customization parameters
     socket.meta.player = actor.create(data.player);
+    socket.meta.player.socket = socket;
 
     // load stored player location
     let chunkName = data.chunk || "waterfall";
@@ -105,17 +121,17 @@ io.on('connection', function(socket) {
     enterChunk(activeChunk, socket);
 
     console.log('hello', socket.meta.index);
-    fn(data.player, socket.meta.index, chunkName); // ack
+    fn(data.player, chunkName); // ack
   });
 
-  socket.on('chunkReady', function() {
-    if(!socket.meta.ready) {
-      socket.meta.ready = true;
+  socket.on('chunkReady', function(data, fn) {
+    socket.meta.ready = true;
 
-      // tell socket player about actors in the new chunk
-      let chunkObjects = chunks[socket.meta.currentChunk].getObjectsMessage();
-      socket.emit('objects', chunkObjects);
-    }
+    // tell socket player about actors in the new chunk
+    let chunkObjects = chunks[socket.meta.currentChunk].getObjectsMessage();
+    socket.emit('objects', chunkObjects);
+
+    fn(socket.meta.index);
   });
 
   // validate movement
@@ -144,9 +160,14 @@ setInterval(function() {
       inputs[key] = socket.meta.input;
     });
 
-    let events = chunk.update(1/15, inputs);
+    let actionEvents = chunk.update(1/15, inputs);
 
-    events.filter(eve => eve.type === 'exit').forEach(function(zone) {
+    // test zones, zone events
+    let zoneEvents = [];
+    zoneEvents = chunk.getZoneEvents();
+
+    zoneEvents = zoneEvents.some(function(zone) {
+      if(!fs.existsSync(`./static/models/chunks/${zone.connection}.json`)) { return false; }
       // for each exit zone event, perform some tasks
       let obj = chunk.objects[zone.index];
       let socket = chunk.sockets[zone.index];
@@ -156,9 +177,10 @@ setInterval(function() {
       enterChunk(newChunk, socket);
 
       socket.emit('chunk', zone);
-
-      // TODO: set object position
+      return true;
     });
+
+    let events = actionEvents.concat(zoneEvents);
 
     Object.keys(chunk.sockets).forEach(function(key, i, arr) {
       let socket = chunk.sockets[key];

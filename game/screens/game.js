@@ -113,16 +113,6 @@ screen.enterChunk = function(chunkName) {
       screen.fadeOut(100).then(function() {
         let outputPoint = chunk.position;
         if(state.chunk) {
-          // assume for now that connections are always two way
-          // find the corresponding connection zone and get a random point from it
-          let zoneConnection = chunk.zones.filter((zone) => zone.connection === state.chunk.name)[0];
-          if(zoneConnection) {
-            outputPoint = zoneConnection.localToWorld(zoneConnection.position.clone());
-            outputPoint.add(new THREE.Vector3(zoneConnection.scale.x * (Math.random()-0.5), 0,
-                                              zoneConnection.scale.z * (Math.random()-0.5)));
-          }
-          // deactivate zone until the zone is left
-          zoneConnection.justEntered = true;
 
           // remove the old chunk
           cleanupChunk();

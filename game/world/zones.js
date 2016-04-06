@@ -3,17 +3,17 @@ const state = require('../state.js');
 var zones = {
   "exit": {
     "enter": function(zone) {
-      if(zone.justEntered) {
-        return [];
-      }
-      //state.screen.enterChunk(zone.connection, zone.offsetPosition, zone.offsetRotation);
-      return {
+      return [{
         type: 'exit',
         connection: zone.connection
-      };
+      }];
+    },
+    "stay": function(zone) {
+      return [];
     },
     "exit": function(zone) {
-      zone.justEntered = false;
+      //zone.justEntered = false;
+      // TODO: link this to socket.meta.justEntered
       return [];
     }
   }
