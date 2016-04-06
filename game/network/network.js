@@ -6,14 +6,39 @@ const state = require('../state.js');
 let socket = io(window.location.hostname + ':8081');
 let localOnly = false;
 
+let create = function(data) {
+  let obj = objects[data.type].create(data);
+  state.chunk.addObject(obj, data.index);
+};
+
+let leave = function(data) {
+  state.chunk.removeIndex(data.index);
+}
+
+socket.on('new', function(data) {
+  create(data);
+});
+
+socket.on('objects', function(datas) {
+  datas.forEach(create);
+});
+
+socket.on('leave', function(data) {
+  leave(data);
+});
+
+socket.on('chunk', function(data) {
+  state.screen.enterChunk(data.connection).then(() => {
+    socket.emit('chunkReady');
+  });
+});
+
 socket.on('update', function(datas) {
   if(localOnly) { return; }
 
   datas.forEach((data) => {
     if(data.type === 'exit') {
-      state.screen.enterChunk(data.connection).then(() => {
-        socket.emit('chunkReady');
-      });
+      leave(data);
       return;
     }
 
@@ -25,23 +50,6 @@ socket.on('update', function(datas) {
     obj.netFrames = 0;
   });
 
-});
-
-let create = function(data) {
-  let obj = objects[data.type].create(data);
-  state.chunk.addObject(obj, data.index);
-};
-
-socket.on('new', function(data) {
-  create(data);
-});
-
-socket.on('objects', function(datas) {
-  datas.forEach(create);
-});
-
-socket.on('leave', function(data) {
-  state.chunk.removeIndex(data.index);
 });
 
 module.exports.login = function() {

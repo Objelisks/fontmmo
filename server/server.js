@@ -155,6 +155,8 @@ setInterval(function() {
       leaveChunk(chunk, socket);
       enterChunk(newChunk, socket);
 
+      socket.emit('chunk', zone);
+
       // TODO: set object position
     });
 

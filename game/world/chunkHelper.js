@@ -16,6 +16,7 @@ chunk.update = function(delta, inputMap) {
       // movement events
       events.push({
         index: obj.index,
+        type: 'move',
         x: obj.position.x,
         z: obj.position.z
       });
@@ -50,46 +51,34 @@ let genIndex = (function() {
 })();
 
 chunk.getZoneEvents = function(obj) {
-  // TODO: real zone checking
-  /*
-
-    // Check to see if player is over any zones
-    var zoneChecker = new THREE.Raycaster(state.player.position.clone().add(UP), UP.clone().negate());
-    var hits = zoneChecker.intersectObjects(state.chunk.zones);
-    var newActiveZones = [];
-
-    hits.forEach(function(zoneHit) {
-      var type = zoneHit.object.type;
-      // If we weren't in the zone last frame: enter, else stay
-      if(activeZones.indexOf(zoneHit.object) === -1) {
-        zones.enter(type, zoneHit);
-      } else {
-        zones.stay(type, zoneHit);
-      }
-
-      newActiveZones.push(zoneHit.object);
-    });
-
-    // For each of the zones which left the active set, call exit
-    activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
-      zones.exit(zone.type, zone);
-    });
-    activeZones = newActiveZones;
-  */
-
+  // Check to see if player is over any zones
+  this.activeZones = this.activeZones || [];
+  let newActiveZones = [];
   let events = [];
+
   this.zones.forEach(function(zone) {
     let a = {x: 0, z: 0};
     let b = {x: 0, z: 0};
     let d = {x: 0, z: 0};
     if(collision.pointInRectangle(obj.position.x, obj.position.z, a, b, d)) {
-      events.push({
-        index: obj.index,
-        type: 'exit',
-        connection: zone.connection
-      });
+      let type = zone.type;
+      // If we weren't in the zone last frame: enter, else stay
+      if(this.activeZones.indexOf(zone) === -1) {
+        events.concat(zones.enter(type, zone));
+      } else {
+        events.concat(zones.stay(type, zone));
+      }
+
+      newActiveZones.push(zone);
     }
   });
+  // For each of the zones which left the active set, call exit
+  this.activeZones.filter((zone) => newActiveZones.indexOf(zone)).forEach((zone) => {
+    events.concat(zones.exit(zone.type, zone));
+  });
+  this.activeZones = newActiveZones;
+
+  events = events.map(e => Object.assign(e, {index: obj.index}));
   return events;
 };
 
