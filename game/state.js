@@ -3,6 +3,5 @@ module.export = {
   screen: null,
   scene: null,
   camera: null,
-  player: null,
-  actors: null
+  player: null
 }

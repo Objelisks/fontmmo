@@ -2,10 +2,10 @@
   "name": "fontmmo",
   "version": "1.0.0",
   "description": "font mmo",
-  "main": "static/index.html",
+  "main": "server/server.js",
   "scripts": {
-    "server": "node server/server.js",
-    "watch": "watchify main.js -o static/compiled.js --debug",
+    "server": "node --use_strict server/server.js",
+    "watch": "watchify client.js -o static/compiled.js --debug -t babelify",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +19,8 @@
   },
   "devDependencies": {
     "static-server": "^2.0.1",
-    "watchify": "^3.7.0"
+    "watchify": "^3.7.0",
+    "babelify": "^7.2.0"
   },
   "dependencies": {
     "socket.io": "^1.4.5",
