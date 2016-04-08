@@ -2733,7 +2733,7 @@
         "z": 10.56052469609213
       },
       "type": "exit",
-      "connection": "fake"
+      "connection": "waterfall"
     }
   ],
   "objects": [],

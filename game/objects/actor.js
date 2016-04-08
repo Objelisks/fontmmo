@@ -21,7 +21,12 @@ let actorMethods = {
     if(state.client && this.netTarget) {
       this.netFrames += 1;
       let target = new THREE.Vector3(this.netTarget.x, this.position.y, this.netTarget.z);
-      this.position.lerp(target, 0.1/this.netFrames);
+      if(this.noLerpNext) {
+        this.position.copy(target);
+        this.noLerpNext = false;
+      } else {
+        this.position.lerp(target, 0.1/this.netFrames);
+      }
       //return;
     }
 

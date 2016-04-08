@@ -55,7 +55,7 @@ Collision.resolveChunkWalls = function(obj, movement, radius) {
     } // end for
   }); // end walls each
   return movement.clone().add(adjustments);
-}
+};
 
 Collision.intersectCircleLineSegment = function(position, radius, x1, y1, x2, y2) {
   let line = new THREE.Line3(new THREE.Vector3(x1, y1, 0), new THREE.Vector3(x2, y2, 0));
@@ -68,15 +68,15 @@ Collision.intersectCircleLineSegment = function(position, radius, x1, y1, x2, y2
   } else {
     return null;
   }
-}
+};
 
-Collision.pointInRectangle = function(x, y, a, b, d) {
-  let am = new THREE.Vector2(x-a.x, y-a.y);
-  let ab = new THREE.Vector2(b.x-a.x, b.y-a.y);
-  let ad = new THREE.Vector2(d.x-a.x, d.y-a.y);
-  let amab = am.dot(ab);
-  let amad = am.dot(ad);
-  return (amab < ab.lengthSq()) && (amab > 0) && (amad < ad.lengthSq()) && (amad > 0);
-}
+Collision.pointInRectangle = function(x, y, a, b, c) {
+  let bm = new THREE.Vector2(x-b.x, y-b.y);
+  let ba = new THREE.Vector2(a.x-b.x, a.y-b.y);
+  let bc = new THREE.Vector2(c.x-b.x, c.y-b.y);
+  let bmba = bm.dot(ba);
+  let bmbc = bm.dot(bc);
+  return (bmba < ba.dot(ba)) && (bmba > 0) && (bmbc < bc.dot(bc)) && (bmbc > 0);
+};
 
 module.exports = Collision;

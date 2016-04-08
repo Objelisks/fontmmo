@@ -35,7 +35,10 @@ socket.on('leave', function(data) {
 socket.on('chunk', function(data) {
   module.exports.playerIndex = null;
   state.screen.enterChunk(data.connection).then(() => {
-    socket.emit('chunkReady', undefined, setIndex);
+    socket.emit('chunkReady', undefined, function(index, pos) {
+      setIndex(index);
+      module.exports.playerRelocate = pos;
+    });
   });
 });
 
@@ -72,5 +75,7 @@ module.exports.login = function() {
 }
 
 module.exports.sendInputDelta = function(inputDelta) {
-  socket.emit('input', inputDelta);
+  if(module.exports.playerIndex) {
+    socket.emit('input', inputDelta);
+  }
 };

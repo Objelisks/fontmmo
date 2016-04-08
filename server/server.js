@@ -56,17 +56,15 @@ let enterChunk = function(chunk, socket) {
   // TODO: fix player data
   socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: {}});
 
-  if(socket.meta.leftChunk) {
+  if(socket.meta.player.justEnteredFrom) {
     // assume for now that connections are always two way
     // find the corresponding connection zone and get a random point from it
-    let zone = chunk.zones.filter((zone) => zone.connection === socket.meta.leftChunk).pop();
+    let zone = chunk.zones.filter((zone) => zone.connection === socket.meta.player.justEnteredFrom).pop();
     if(zone) {
       let outputPoint = new THREE.Vector3(zone.a.x, 0.5, zone.a.z);
       outputPoint.add(new THREE.Vector3((zone.c.x-zone.a.x)*Math.random(), 0, (zone.c.z-zone.a.z)*Math.random()));
       socket.meta.player.position.copy(outputPoint);
     }
-    // deactivate zone until the zone is left
-    socket.meta.justEntered = true;
   }
 }
 
@@ -82,7 +80,7 @@ let leaveChunk = function(chunk, socket) {
   socket.leave(socket.meta.currentChunk);
 
   // null out other data
-  socket.meta.leftChunk = socket.meta.currentChunk;
+  //socket.meta.leftChunk = socket.meta.currentChunk;
   socket.meta.currentChunk = null;
   socket.meta.index = null;
   socket.meta.ready = false;
@@ -131,7 +129,7 @@ io.on('connection', function(socket) {
     let chunkObjects = chunks[socket.meta.currentChunk].getObjectsMessage();
     socket.emit('objects', chunkObjects);
 
-    fn(socket.meta.index);
+    fn(socket.meta.index, socket.meta.player.position);
   });
 
   // validate movement
@@ -166,11 +164,15 @@ setInterval(function() {
     let zoneEvents = [];
     zoneEvents = chunk.getZoneEvents();
 
+    // for each zone event, move between areas
     zoneEvents = zoneEvents.some(function(zone) {
       if(!fs.existsSync(`./static/models/chunks/${zone.connection}.json`)) { return false; }
+
       // for each exit zone event, perform some tasks
       let obj = chunk.objects[zone.index];
       let socket = chunk.sockets[zone.index];
+
+      obj.justEnteredFrom = socket.meta.currentChunk;
 
       let newChunk = loadChunk(zone.connection);
       leaveChunk(chunk, socket);

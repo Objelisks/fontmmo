@@ -44,8 +44,6 @@ screen.create = function(data) {
   state.scene.add(fadeObject);
 
   network.login();
-
-  //screen.enterChunk('waterfall').then(() => network.login());
 }
 
 screen.destroy = function() {
@@ -63,6 +61,11 @@ screen.update  = function(delta) {
   }
 
   if(network.playerIndex && state.chunk && state.chunk.objects[network.playerIndex]) {
+    if(network.playerRelocate) {
+      state.chunk.objects[network.playerIndex].position.copy(network.playerRelocate);
+      network.playerRelocate = null;
+    }
+
     var inputMap = {};
     inputMap[network.playerIndex] = inputDelta;
     state.chunk.update(delta, inputMap);

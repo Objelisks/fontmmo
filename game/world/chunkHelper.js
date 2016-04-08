@@ -58,9 +58,9 @@ chunk.getZoneEvents = function() {
     let newActiveZones = [];
 
     this.zones.forEach((zone) => {
-      let a = {x: zone.a.x, y: zone.a.z};
-      let b = {x: zone.b.x, y: zone.b.z};
-      let c = {x: zone.c.x, y: zone.c.z};
+      let a = {x: zone.a.x, y: zone.a.z}; // red
+      let b = {x: zone.b.x, y: zone.b.z}; // green
+      let c = {x: zone.c.x, y: zone.c.z}; // blue
       if(collision.pointInRectangle(obj.position.x, obj.position.z, a, b, c)) {
         let type = zone.type;
         // If we weren't in the zone last frame: enter, else stay
