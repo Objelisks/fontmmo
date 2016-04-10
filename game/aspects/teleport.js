@@ -1,24 +1,44 @@
 var aspect = {};
 
-
-aspect.blink = {
-  initiate: function(actor) {
-    network.send('act', 'blink');
+// blink
+// quick teleport to nearby location
+aspect.first = {
+  // called when ability button is pressed
+  start: function(actor) {
+    // call this function when button is pressed
+    // starting particles
+    // establish state
+    // disable ability
   },
-  action: function(data) {
-    actor.position.set(data.x, actor.position.y, data.z);
-  },
-  effect: function() {
-    // spawn particles
+  // called back from network update
+  finish: function(data) {
+    // use data
+    actor.position.set(data.location.x, actor.position.y, data.location.z);
+    // more particles at new location
+    // delete state
   }
 }
 
-// name a place and go there
-aspect.teleport = {
+// teleport
+// name a place and go there (chunk change)
+aspect.second = {
+  start: function(actor) {
 
+  },
+  finish: function(data) {
+
+  }
 }
 
+// warp
 // actors near primary actor are sped up
-aspect.warp = {
+aspect.third = {
+  start: function(actor) {
 
+  },
+  finish: function(data) {
+
+  }
 }
+
+return aspect;

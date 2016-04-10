@@ -57,7 +57,7 @@ screen.update  = function(delta) {
   network.sendInputDelta(inputDelta);
 
   if(inputDelta.a) {
-    console.log(state.chunk.objects);
+    aspects['teleport'].first(player);
   }
 
   if(network.playerIndex && state.chunk && state.chunk.objects[network.playerIndex]) {

@@ -1,13 +1,12 @@
 const THREE = require('../static/three.min.js');
 global.THREE = THREE;
 
-const io = require('socket.io')();
 const StaticServer = require('static-server');
-const os = require('os');
+const io = require('socket.io')();
 const fs = require('fs');
 const actor = require('../game/objects/actor.js');
-const createChunk = require('../game/world/chunk.js').createChunk;
-const importer = require('../game/world/import.js');
+const chunkMan = require('./chunkManager.js');
+const zoneHelper = require('./zoneHelper.js');
 
 // deploy file server
 let server = new StaticServer({
@@ -19,6 +18,7 @@ server.start();
 /*
 // deploy statistics server
 const statServer = require('socket.io')();
+const os = require('os');
 let staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
 let dynamicStats = ['freemem', 'loadavg', 'uptime'];
 
@@ -30,61 +30,7 @@ statServer.on('connection', function(socket) {
 statServer.listen(8082);
 */
 
-let chunks = {};
-let loadChunk = function(name) {
-  if(chunks[name] === undefined) {
-    let content = JSON.parse(fs.readFileSync(`./static/models/chunks/${name}.json`));
-    let chunk = createChunk(content);
-    chunk.sockets = {};
-    chunks[name] = chunk;
-  }
-  return chunks[name];
-};
 let playerData = JSON.parse(fs.readFileSync('./server/playerData.json'));
-
-let enterChunk = function(chunk, socket) {
-  // generate player id
-  let index = chunk.addObject(socket.meta.player);
-  chunk.sockets[index] = socket;
-  socket.meta.index = index;
-  socket.meta.currentChunk = chunk.name;
-
-  socket.meta.ready = false;
-
-  // join chunk room, tell everyone else we're here
-  socket.join(socket.meta.currentChunk);
-  // TODO: fix player data
-  socket.broadcast.in(socket.meta.currentChunk).emit('new', {type: 'actor', index: index, playerData: {}});
-
-  if(socket.meta.player.justEnteredFrom) {
-    // assume for now that connections are always two way
-    // find the corresponding connection zone and get a random point from it
-    let zone = chunk.zones.filter((zone) => zone.connection === socket.meta.player.justEnteredFrom).pop();
-    if(zone) {
-      let outputPoint = new THREE.Vector3(zone.a.x, 0.5, zone.a.z);
-      outputPoint.add(new THREE.Vector3((zone.c.x-zone.a.x)*Math.random(), 0, (zone.c.z-zone.a.z)*Math.random()));
-      socket.meta.player.position.copy(outputPoint);
-    }
-  }
-}
-
-let leaveChunk = function(chunk, socket) {
-  let oldIndex = socket.meta.index;
-
-  // remove references in chunk object
-  chunk.removeIndex(oldIndex);
-  delete chunk.sockets[oldIndex];
-
-  // leave room
-  socket.broadcast.in(socket.meta.currentChunk).emit('leave', {index: oldIndex});
-  socket.leave(socket.meta.currentChunk);
-
-  // null out other data
-  //socket.meta.leftChunk = socket.meta.currentChunk;
-  socket.meta.currentChunk = null;
-  socket.meta.index = null;
-  socket.meta.ready = false;
-}
 
 // deploy game server
 io.on('connection', function(socket) {
@@ -114,9 +60,9 @@ io.on('connection', function(socket) {
     socket.meta.player.position.z = data.location.z;
 
     // load chunk if needed
-    let activeChunk = loadChunk(chunkName);
+    let activeChunk = chunkMan.loadChunk(chunkName);
 
-    enterChunk(activeChunk, socket);
+    chunkMan.enterChunk(activeChunk, socket);
 
     console.log('hello', socket.meta.index);
     fn(data.player, chunkName); // ack
@@ -126,8 +72,8 @@ io.on('connection', function(socket) {
     socket.meta.ready = true;
 
     // tell socket player about actors in the new chunk
-    let chunkObjects = chunks[socket.meta.currentChunk].getObjectsMessage();
-    socket.emit('objects', chunkObjects);
+    let chunkObjects = chunkMan.chunks[data].getObjectsMessage();
+    socket.emit('objects', {chunk: data, objects: chunkObjects});
 
     fn(socket.meta.index, socket.meta.player.position);
   });
@@ -139,58 +85,38 @@ io.on('connection', function(socket) {
 
   socket.on('disconnect', function() {
     console.log('goodbye', socket.meta.index);
-    if(chunks[socket.meta.currentChunk]) {
-      leaveChunk(chunks[socket.meta.currentChunk], socket);
-    }
-
-    // TODO: cleanup empty chunk references
+    chunkMan.leaveChunk(chunkMan.chunks[socket.meta.currentChunk], socket);
   });
 });
 
 io.listen(8081);
 
+// main server update loop
 setInterval(function() {
-  Object.keys(chunks).forEach(function(chunkName) {
-    let chunk = chunks[chunkName];
+  Object.keys(chunkMan.chunks).forEach(function(chunkName) {
+    let chunk = chunkMan.chunks[chunkName];
+
+    // grab latest input
     let inputs = {};
     Object.keys(chunk.sockets).forEach((key) => {
       let socket = chunk.sockets[key];
       inputs[key] = socket.meta.input;
     });
 
+    // update with input
     let actionEvents = chunk.update(1/15, inputs);
-
-    // test zones, zone events
-    let zoneEvents = [];
-    zoneEvents = chunk.getZoneEvents();
-
-    // for each zone event, move between areas
-    zoneEvents = zoneEvents.some(function(zone) {
-      if(!fs.existsSync(`./static/models/chunks/${zone.connection}.json`)) { return false; }
-
-      // for each exit zone event, perform some tasks
-      let obj = chunk.objects[zone.index];
-      let socket = chunk.sockets[zone.index];
-
-      obj.justEnteredFrom = socket.meta.currentChunk;
-
-      let newChunk = loadChunk(zone.connection);
-      leaveChunk(chunk, socket);
-      enterChunk(newChunk, socket);
-
-      socket.emit('chunk', zone);
-      return true;
+    Object.keys(chunk.objects).forEach((objKey) => {
+      zoneHelper.processZones(chunk, chunk.objects[objKey]);
     });
 
-    let events = actionEvents.concat(zoneEvents);
-
+    // send updates
     Object.keys(chunk.sockets).forEach(function(key, i, arr) {
       let socket = chunk.sockets[key];
       if(socket.meta.ready) {
-        socket.emit('update', events);
+        socket.emit('update', {chunk: chunk.name, events: actionEvents});
       }
     });
   });
-}, 66); // 1000/10
+}, 66); // 1000/15
 
 console.log('running');

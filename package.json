@@ -5,7 +5,7 @@
   "main": "server/server.js",
   "scripts": {
     "server": "node --use_strict server/server.js",
-    "watch": "watchify client.js -o static/compiled.js --debug -t babelify",
+    "watch": "watchify static/client.js -o static/compiled.js --debug -t babelify",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

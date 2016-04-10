@@ -1,4 +1,5 @@
 /* global THREE */
+/* client only */
 const io = require('socket.io-client');
 const objects = require('../objects/objects.js');
 const state = require('../state.js');
@@ -24,8 +25,9 @@ socket.on('new', function(data) {
   create(data);
 });
 
-socket.on('objects', function(datas) {
-  datas.forEach(create);
+socket.on('objects', function(data) {
+  if(data.chunk !== state.chunk.name) { return; }
+  data.objects.forEach(create);
 });
 
 socket.on('leave', function(data) {
@@ -35,22 +37,18 @@ socket.on('leave', function(data) {
 socket.on('chunk', function(data) {
   module.exports.playerIndex = null;
   state.screen.enterChunk(data.connection).then(() => {
-    socket.emit('chunkReady', undefined, function(index, pos) {
+    socket.emit('chunkReady', data.connection, function(index, pos) {
       setIndex(index);
       module.exports.playerRelocate = pos;
     });
   });
 });
 
-socket.on('update', function(datas) {
+socket.on('update', function(data) {
   if(localOnly) { return; }
+  if(data.chunk !== state.chunk.name) { return; }
 
-  datas.forEach((data) => {
-    if(data.type === 'exit') {
-      leave(data);
-      return;
-    }
-
+  data.events.forEach((data) => {
     let obj = state.chunk.objects[data.index];
     if(!obj) {
       return;
@@ -69,7 +67,7 @@ module.exports.login = function() {
   socket.emit('hello', authentication, function(playerData, chunkName) {
     // TODO: customize player based on data
     state.screen.enterChunk(chunkName).then(() => {
-      socket.emit('chunkReady', undefined, setIndex);
+      socket.emit('chunkReady', chunkName, setIndex);
     });
   });
 }

@@ -1,0 +1,2 @@
+limit movement immediately after entering zone (client side)
+circular references might be memory leaks? (player -> socket -> player -> chunk, etc)
