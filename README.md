@@ -1,38 +1,22 @@
 # fontmmo
 
-Small mmo game featuring multiple font-based classes.
+mmo
 
-hello world
+## Running server
+`npm run watch` (optional, needed if edits to clientside files are made)
 
-### game
-#### actors
-  Objects that have an update function which gets called every frame
-#### classes
-  Player class/ability implementation
-#### control
-  Input handling
-#### network
-  Network event handling
-#### screens
-  Menus, character creation, main gameplay
-##### modes
-  Different interaction schemes within game screen. Uses control api.
-#### world
-  Terrain, models, collision
+`npm run server`
 
-### server
-#### world
-  Stores world/chunk data
-#### server.js
-  Handles player connections, handles stat.html connections
-#### stat.html
-  Shows server host information
+open `http://localhost:8080`
 
-### static
-#### models
-  Blender -> three.js-io exporter
-#### index.html
-  Client interface for playing the game, requires three.min.js, socket.io, compiled.js (output of browserify on main.js)
+## Controls
 
-### main.js
-  Input to clientside game, compiles to static/compiled.js using browserify/watchify.
+keyboard: 
+
+* wasd or arrow keys: movement
+* h,j,k or z,x,c: abilities (1,2,3)
+
+gamepad:
+
+* left stick: movement
+* X, A, B: abilities (1,2,3)
