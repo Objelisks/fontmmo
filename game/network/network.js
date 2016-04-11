@@ -73,7 +73,5 @@ module.exports.login = function() {
 }
 
 module.exports.sendInputDelta = function(inputDelta) {
-  if(module.exports.playerIndex) {
-    socket.emit('input', inputDelta);
-  }
+  socket.emit('input', inputDelta);
 };

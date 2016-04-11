@@ -3,7 +3,6 @@ const fs = require('fs');
 const createChunk = require('../game/world/chunk.js').createChunk;
 
 module.exports = {};
-
 module.exports.chunks = {};
 
 module.exports.loadChunk = function(name) {
@@ -43,6 +42,7 @@ module.exports.enterChunk = function(chunk, socket) {
 }
 
 module.exports.leaveChunk = function(chunk, socket) {
+  if(!socket.meta) { return; }
   let oldIndex = socket.meta.index;
 
   // remove references in chunk object

@@ -26,6 +26,7 @@ state.renderer = renderer;
 document.body.appendChild(renderer.domElement);
 
 // set starting screen and initialize
+state.client = true;
 state.screen = screens.game;
 state.screen.create({character: {}});
 

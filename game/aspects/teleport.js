@@ -5,6 +5,7 @@ var aspect = {};
 aspect.first = {
   // called when ability button is pressed
   start: function(actor) {
+    console.log('blink start');
     // call this function when button is pressed
     // starting particles
     // establish state
@@ -16,6 +17,7 @@ aspect.first = {
     actor.position.set(data.location.x, actor.position.y, data.location.z);
     // more particles at new location
     // delete state
+    console.log('blink finish');
   }
 }
 
@@ -41,4 +43,4 @@ aspect.third = {
   }
 }
 
-return aspect;
+module.exports = aspect;

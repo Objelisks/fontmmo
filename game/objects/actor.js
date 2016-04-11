@@ -1,6 +1,7 @@
 /* global THREE */
 const collision = require('../interact/collision.js');
 const state = require('../state.js');
+const aspects = require('../aspects/aspects.js');
 
 let actorMaterial = new THREE.MeshStandardMaterial({ color: 0x6DA0A5, roughness:1.0, metalness:0.0 });
 let CAMERA_FORWARD = new THREE.Vector3(-0.7071, 0, -0.7071);
@@ -14,20 +15,28 @@ let actorMethods = {
       'left': 0,
       'right': 0,
       'up': 0,
-      'down': 0
+      'down': 0,
+      'a': 0,
+      'b': 0,
+      'c': 0
     };
 
     // lerp in server authoritative position
     if(state.client && this.netTarget) {
       this.netFrames += 1;
       let target = new THREE.Vector3(this.netTarget.x, this.position.y, this.netTarget.z);
-      if(this.noLerpNext) {
-        this.position.copy(target);
-        this.noLerpNext = false;
-      } else {
-        this.position.lerp(target, 0.1/this.netFrames);
-      }
+      this.position.lerp(target, 0.1/this.netFrames);
       //return;
+    }
+
+    if(input['a'] === 2) {
+      aspects[this.aspects.first].first.start(this);
+    }
+    if(input['b'] === 2) {
+      aspects[this.aspects.second].second.start(this);
+    }
+    if(input['c'] === 2) {
+      aspects[this.aspects.third].third.start(this);
     }
 
     // handle input and move player based on camera direction
@@ -63,6 +72,12 @@ module.exports.create = function(data) {
   actor.position.y = 0.5;
   actor.type = 'actor';
   actor.moveSpeed = 10.0;
+
+  actor.aspects = {
+    first: 'teleport',
+    second: 'teleport',
+    third: 'teleport'
+  };
 
   Object.assign(actor, actorMethods);
 

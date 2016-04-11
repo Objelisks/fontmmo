@@ -80,7 +80,13 @@ io.on('connection', function(socket) {
 
   // validate movement
   socket.on('input', function(msg) {
-    socket.meta.input = msg;
+    if(socket.meta.input !== undefined) {
+      Object.keys(msg).forEach((button) => {
+        socket.meta.input[button] = Math.max(msg[button] || 0, socket.meta.input[button] || 0);
+      });
+    } else {
+      socket.meta.input = msg;
+    }
   });
 
   socket.on('disconnect', function() {
@@ -115,6 +121,9 @@ setInterval(function() {
       if(socket.meta.ready) {
         socket.emit('update', {chunk: chunk.name, events: actionEvents});
       }
+
+      // clear inputs
+      socket.meta.input = undefined;
     });
   });
 }, 66); // 1000/15

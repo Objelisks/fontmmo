@@ -15,8 +15,6 @@ let width = 1024,
     height = 768;
 
 screen.create = function(data) {
-  state.client = true;
-
   let scene = new THREE.Scene();
   state.scene = scene;
 
@@ -54,13 +52,13 @@ screen.update  = function(delta) {
   TWEEN.update();
 
   let inputDelta = input.update(delta);
-  network.sendInputDelta(inputDelta);
 
-  if(inputDelta.a) {
-    aspects['teleport'].first(player);
-  }
-
+  // NOTE: currently only updating if we have a chunk and player (this might not be true later)
   if(network.playerIndex && state.chunk && state.chunk.objects[network.playerIndex]) {
+    let player = state.chunk.objects[network.playerIndex];
+
+    network.sendInputDelta(inputDelta);
+
     if(network.playerRelocate) {
       state.chunk.objects[network.playerIndex].position.copy(network.playerRelocate);
       network.playerRelocate = null;
@@ -71,7 +69,6 @@ screen.update  = function(delta) {
     state.chunk.update(delta, inputMap);
 
     // update main camera and shadow camera
-    let player = state.chunk.objects[network.playerIndex];
     let cameraLocation = player.position.clone().add(cameraOffset);
     let otherCameraLocation = player.position.clone().add(new THREE.Vector3(5,10,-5));
     state.camera.position.lerp(cameraLocation, 0.1);
@@ -79,8 +76,6 @@ screen.update  = function(delta) {
     // TODO: figure out shadow camera
     // state.light.position.copy(otherCameraLocation);
   }
-
-  // TODO: zone check?
 
   fadeObject.position.copy(state.camera.position);
 }

@@ -1,6 +1,6 @@
-var keyboard = require('./keyboard.js');
+const keyboard = require('./keyboard.js');
 
-var inputMethods = [keyboard];
+let inputMethods = [keyboard];
 // TODO: gamepad input method
 // TODO: touch input method
 
@@ -21,15 +21,17 @@ buttons are 0: off, 1: pressed, 2: just pressed
 
 */
 
-var inputTypes = [
+let axes = [
   'left',
   'right',
   'up',
-  'down',
+  'down'
+];
+let buttons = [
   'a',
   'b',
   'c'
-]
+];
 
 module.exports.isDown = function(key) {
     return inputMethods.some((method) => method.isDown(key));
@@ -39,12 +41,11 @@ module.exports.justPressed = function(key) {
     return inputMethods.some((method) => method.justPressed(key));
 }
 
-
 // return an input delta, which can be consumed by network and clientside prediction
 module.exports.update = function(delta) {
+  let inputDelta = {};
+  axes.forEach((type) => inputDelta[type] = module.exports.isDown(type) ? 1:0);
+  buttons.forEach((type) => inputDelta[type] = module.exports.justPressed(type) ? 2 : (module.exports.isDown(type) ? 1 : 0));
   inputMethods.forEach((method) => method.update(delta));
-
-  var inputDelta = {};
-  inputTypes.forEach((type) => inputDelta[type] = module.exports.isDown(type) ? 1:0);
   return inputDelta;
 }
