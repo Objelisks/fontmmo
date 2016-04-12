@@ -11,19 +11,7 @@ chunk.update = function(delta, inputMap) {
 
   Object.keys(this.objects).forEach((objIndex) => {
     let obj = this.objects[objIndex];
-    let oldPos = obj.position.clone();
-
-    obj.update(delta, inputMap[objIndex]);
-
-    if(oldPos.sub(obj.position).length() > 0) {
-      // movement events
-      events.push({
-        index: obj.index,
-        type: 'move',
-        x: obj.position.x,
-        z: obj.position.z
-      });
-    }
+    events = events.concat(obj.update(delta, inputMap[objIndex]));
   });
 
   return events;

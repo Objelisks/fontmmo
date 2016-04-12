@@ -4,7 +4,7 @@ pugilist
   block physical
 
 alchemist
-  throw poison vial
+  throw explosive vial
   healing gas
   immunity to poison
 
@@ -16,7 +16,7 @@ occultist
 telemancer
   blink
   teleport
-  warp nearby
+  haste nearby
 
 botanist
   poison gas
@@ -52,3 +52,4 @@ carpenter
 ornithologist
   call crows
   bird form
+  immunity to birds

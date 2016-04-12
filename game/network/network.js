@@ -48,13 +48,18 @@ socket.on('update', function(data) {
   if(localOnly) { return; }
   if(data.chunk !== state.chunk.name) { return; }
 
+  Object.keys(state.chunk.objects).forEach((objKey) => {
+    let obj = state.chunk.objects[objKey];
+    obj.netEvents = [];
+  });
+
   data.events.forEach((data) => {
     let obj = state.chunk.objects[data.index];
     if(!obj) {
       return;
     }
-    obj.netTarget = data;
-    obj.netFrames = 0;
+    obj.netEvents.push(data);
+    obj.netActive = true;
   });
 
 });

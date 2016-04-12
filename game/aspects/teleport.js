@@ -4,43 +4,60 @@ var aspect = {};
 // quick teleport to nearby location
 aspect.first = {
   // called when ability button is pressed
-  start: function(actor) {
+  client_predict: function(actor) {
     console.log('blink start');
     // call this function when button is pressed
     // starting particles
     // establish state
     // disable ability
   },
+  client_finish: function(actor, data) {
+    console.log('blink finish');
+    actor.position.set(data.x, actor.position.y, data.z);
+  },
   // called back from network update
-  finish: function(data) {
+  server: function(actor) {
     // use data
-    actor.position.set(data.location.x, actor.position.y, data.location.z);
+    actor.position.add(new THREE.Vector3(Math.random()*10-5, 0, Math.random()*10-5));
     // more particles at new location
     // delete state
-    console.log('blink finish');
+    console.log('blink server');
+    return [{
+      index: actor.index,
+      type: 'aspect',
+      aspect: 'teleport/first',
+      x: actor.position.x,
+      z: actor.position.z
+    }];
   }
-}
+};
 
 // teleport
 // name a place and go there (chunk change)
 aspect.second = {
-  start: function(actor) {
+  client_predict: function(actor) {
 
   },
-  finish: function(data) {
+  client_finish: function(actor, data) {
+
+  },
+  server: function(data) {
 
   }
-}
+};
 
 // warp
 // actors near primary actor are sped up
 aspect.third = {
-  start: function(actor) {
+  client_predict: function(actor) {
 
   },
-  finish: function(data) {
+  client_finish: function(actor, data) {
+
+  },
+  server: function(data) {
 
   }
-}
+};
 
 module.exports = aspect;

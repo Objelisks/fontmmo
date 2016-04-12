@@ -8,8 +8,14 @@ let CAMERA_FORWARD = new THREE.Vector3(-0.7071, 0, -0.7071);
 let UP = new THREE.Vector3(0,1,0);
 let NORTH = new THREE.Vector3(0,0,1);
 
+let handleAspects = function(actor, aspect, stage) {
+
+}
+
 let actorMethods = {
   update: function(delta, input) {
+    let events = [];
+
     // default input
     input = input || {
       'left': 0,
@@ -22,21 +28,42 @@ let actorMethods = {
     };
 
     // lerp in server authoritative position
-    if(state.client && this.netTarget) {
-      this.netFrames += 1;
-      let target = new THREE.Vector3(this.netTarget.x, this.position.y, this.netTarget.z);
-      this.position.lerp(target, 0.1/this.netFrames);
-      //return;
+    if(state.client && this.netActive) {
+      this.netEvents.forEach((event) => {
+        switch(event.type) {
+          case 'move':
+            let target = new THREE.Vector3(event.x, this.position.y, event.z);
+            this.position.lerp(target, 0.1);
+            break;
+          case 'aspect':
+            let aspect = event.aspect.split('/');
+            aspects[aspect[0]][aspect[1]].client_finish(this, event);
+            break;
+        }
+      });
+      this.netActive = false;
     }
 
-    if(input['a'] === 2) {
-      aspects[this.aspects.first].first.start(this);
-    }
-    if(input['b'] === 2) {
-      aspects[this.aspects.second].second.start(this);
-    }
-    if(input['c'] === 2) {
-      aspects[this.aspects.third].third.start(this);
+    if(!state.client) {
+      if(input['a'] === 2) {
+        events = events.concat(aspects[this.aspects.first].first.server(this));
+      }
+      if(input['b'] === 2) {
+        events = events.concat(aspects[this.aspects.second].second.server(this));
+      }
+      if(input['c'] === 2) {
+        events = events.concat(aspects[this.aspects.third].third.server(this));
+      }
+    } else {
+      if(input['a'] === 2) {
+        aspects[this.aspects.first].first.client_predict(this);
+      }
+      if(input['b'] === 2) {
+        aspects[this.aspects.second].second.client_predict(this);
+      }
+      if(input['c'] === 2) {
+        aspects[this.aspects.third].third.client_predict(this);
+      }
     }
 
     // handle input and move player based on camera direction
@@ -59,6 +86,15 @@ let actorMethods = {
 
     // speed lines
     this.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(UP, actualMovement), 0.2);
+
+    events.push({
+      index: this.index,
+      type: 'move',
+      x: this.position.x,
+      z: this.position.z
+    });
+
+    return events;
   }
 };
 
