@@ -1,6 +1,7 @@
 /* global THREE */
 const state = require('../game/state.js');
 const screens = require('../game/screens/screens.js');
+const particles = require('../game/client/particles.js');
 
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -27,20 +28,24 @@ document.body.appendChild(renderer.domElement);
 
 // set starting screen and initialize
 state.client = true;
-state.screen = screens.game;
-state.screen.create({character: {}});
+state.screen = screens.login;
+state.screen.create();
+
+// TODO: clean this all up, its nasty
 
 // main render, update loop
 let clock = new THREE.Clock(true);
 let render = function() {
   let screen = state.screen;
 
-  stats.begin();
-
-  renderer.render(state.scene, state.camera);
-
   // TODO: decouple update from rendering
   let delta = clock.getDelta();
+
+  stats.begin();
+
+  particles.update();
+  renderer.render(state.scene, state.camera);
+
   screen.update(delta);
   // switch screens if needed
   if(screen.transition) {

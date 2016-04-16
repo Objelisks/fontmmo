@@ -4,6 +4,7 @@ const input = require('../control/input.js');
 const network = require('../network/network.js');
 const importer = require('../world/import.js');
 const state = require('../state.js');
+const particles = require('../client/particles.js');
 
 let screen = {};
 
@@ -41,7 +42,9 @@ screen.create = function(data) {
 
   state.scene.add(fadeObject);
 
-  network.login();
+  state.scene.add(particles.group);
+
+  network.connect(data.token);
 }
 
 screen.destroy = function() {
@@ -98,45 +101,26 @@ screen.fadeIn = function(time) {
   });
 }
 
-let cleanupChunk = function() {
-  // remove the old chunk
-  state.scene.remove(state.chunk);
-  state.chunk = null;
-}
-
 // load the chunk, when done loading fade out and replace chunks, then fade back in
 screen.enterChunk = function(chunkName) {
   return new Promise(function(resolve, reject) {
     importer.importChunk(chunkName, function(chunk) {
       screen.fadeOut(100).then(function() {
-        let outputPoint = chunk.position;
         if(state.chunk) {
-
           // remove the old chunk
-          cleanupChunk();
+          state.scene.remove(state.chunk);
+          state.chunk = null;
         }
-
-        //network.send('chunk_transition', chunkName);
 
         // add the new chunk
         state.chunk = chunk;
         state.scene.add(state.chunk);
         resolve();
 
-        // TODO: add player to chunk (get new chunk id from network)
-
-        // update the player and camera position
-        // TODO: do this in explore.js to consolidate camera offset
-        //state.player.position.copy(outputPoint);
-        //state.player.position.y = 0.5;
-        //state.camera.position.copy(state.player.position.clone().add(new THREE.Vector3(0, 10, 20)));
-
         // fade back in
         screen.fadeIn(100);
       });
-
     });
-
   });
 }
 

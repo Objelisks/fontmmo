@@ -4,9 +4,8 @@
   "description": "font mmo",
   "main": "server/server.js",
   "scripts": {
-    "server": "node --use_strict server/server.js",
-    "watch": "watchify static/client.js -o static/compiled.js --debug -t babelify",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --use_strict server/server.js",
+    "watch": "watchify static/client.js -o static/compiled.js --debug -t babelify"
   },
   "repository": {
     "type": "git",
@@ -23,8 +22,13 @@
     "babelify": "^7.2.0"
   },
   "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4",
+    "jsonwebtoken": "^5.7.0",
+    "request": "^2.71.0",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
+    "socketio-jwt": "^4.3.4",
     "tween.js": "^16.3.4"
   }
 }

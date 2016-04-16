@@ -2,35 +2,49 @@ const THREE = require('../static/three.min.js');
 global.THREE = THREE;
 
 const StaticServer = require('static-server');
-const io = require('socket.io')();
 const fs = require('fs');
 const actor = require('../game/objects/actor.js');
 const chunkMan = require('./chunkManager.js');
 const zoneHelper = require('./zoneHelper.js');
 
-// deploy file server
-let server = new StaticServer({
-  rootPath:'./static/',
-  port: 8080
-});
-server.start();
-
-/*
-// deploy statistics server
-const statServer = require('socket.io')();
-const os = require('os');
-let staticStats = ['arch', 'cpus', 'endianness', 'homedir', 'hostname', 'networkInterfaces', 'platform', 'release', 'tmpdir', 'totalmem', 'type'];
-let dynamicStats = ['freemem', 'loadavg', 'uptime'];
-
-statServer.on('connection', function(socket) {
-  socket.emit('spec', staticStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {}));
-  // one second updates
-  setInterval(() => socket.emit('stat', dynamicStats.reduce(function(obj, stat) { obj[stat] = os[stat](); return obj;}, {})), 1000)
-});
-statServer.listen(8082);
-*/
-
+// get secrets
+let secret = fs.readFileSync('./server/secret');
 let playerData = JSON.parse(fs.readFileSync('./server/playerData.json'));
+
+const socketioJwt = require('socketio-jwt');
+const jwt = require('jsonwebtoken');
+const express = require('express');
+const bodyParser = require('body-parser');
+const https = require('https');
+let app = express();
+
+app.use(express.static('./static'));
+app.use(bodyParser.json());
+
+app.post('/authenticate', function(req, res) {
+  let user = req.body;
+  // TODO: check username/password
+  console.log('authentication', user.username, user.password);
+  if(true) {
+    let token = jwt.sign(user, secret, {});
+    res.json({token: token});
+  } else {
+    res.json({message: 'invalid login'});
+  }
+});
+
+let httpsOpt = {
+  key: fs.readFileSync('./server/ssl/https.key'),
+  cert: fs.readFileSync('./server/ssl/https.crt')
+};
+
+let server = https.createServer(httpsOpt, app).listen(8080);
+
+let io = require('socket.io').listen(server);
+io.set('authorization', socketioJwt.authorize({
+  secret: secret,
+  handshake: true
+}));
 
 // deploy game server
 io.on('connection', function(socket) {
@@ -64,7 +78,7 @@ io.on('connection', function(socket) {
 
     chunkMan.enterChunk(activeChunk, socket);
 
-    console.log('hello', socket.meta.index);
+    console.log('hello', socket.meta.index, socket.handshake);
     fn(data.player, chunkName); // ack
   });
 
@@ -95,7 +109,7 @@ io.on('connection', function(socket) {
   });
 });
 
-io.listen(8081);
+//io.listen(8081);
 
 // main server update loop
 setInterval(function() {
@@ -127,5 +141,3 @@ setInterval(function() {
     });
   });
 }, 66); // 1000/15
-
-console.log('running');

@@ -1,4 +1,8 @@
-var aspect = {};
+//const particles = require('')
+const collision = require('../interact/collision.js');
+const particles = require('../client/particles.js');
+
+let aspect = {};
 
 // blink
 // quick teleport to nearby location
@@ -6,22 +10,20 @@ aspect.first = {
   // called when ability button is pressed
   client_predict: function(actor) {
     console.log('blink start');
-    // call this function when button is pressed
     // starting particles
-    // establish state
     // disable ability
   },
   client_finish: function(actor, data) {
     console.log('blink finish');
     actor.position.set(data.x, actor.position.y, data.z);
-  },
-  // called back from network update
-  server: function(actor) {
-    // use data
-    actor.position.add(new THREE.Vector3(Math.random()*10-5, 0, Math.random()*10-5));
     // more particles at new location
-    // delete state
-    console.log('blink server');
+  },
+  server: function(actor) {
+    let dir = new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5);
+    dir.setLength(5);
+    let movement = collision.resolveChunkWalls(actor, dir, 0.5);
+    actor.position.add(movement);
+
     return [{
       index: actor.index,
       type: 'aspect',

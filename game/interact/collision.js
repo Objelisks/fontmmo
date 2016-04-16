@@ -31,7 +31,7 @@ Collision.resolveChunkWalls = function(obj, movement, radius) {
       newMovement.set(0,0,0);
 
       let penetrated = false;
-      testOffsets.forEach(function(offset, i) {
+      testOffsets.forEach(function(offset) {
         step.setLength(offset);
         newMovement.add(step);
 
