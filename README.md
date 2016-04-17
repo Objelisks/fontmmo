@@ -2,12 +2,17 @@
 
 mmo
 
+## Installation (for hosting server)
+`npm install`
+
+Install an appropriate version of mongodb, and make sure mongod is on yr path.
+
 ## Running server
-`npm run watch` (optional, needed if edits to clientside files are made)
+`npm run dev` (optional, needed if edits to clientside files are made)
 
-`npm run server`
+`npm run start`
 
-open `http://localhost:8080`
+open `https://localhost:8080`
 
 ## Controls
 
