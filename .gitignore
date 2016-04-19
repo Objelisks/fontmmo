@@ -1,3 +1,7 @@
+server/data
+server/secret
+ssl/*.crt
+ssl/*.key
 static/compiled.js
 node_modules
 npm-debug.log

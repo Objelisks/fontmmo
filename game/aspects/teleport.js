@@ -1,6 +1,5 @@
 //const particles = require('')
 const collision = require('../interact/collision.js');
-const particles = require('../client/particles.js');
 
 let aspect = {};
 

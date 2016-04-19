@@ -4,7 +4,6 @@ const input = require('../control/input.js');
 const network = require('../network/network.js');
 const importer = require('../world/import.js');
 const state = require('../state.js');
-const particles = require('../client/particles.js');
 
 let screen = {};
 
@@ -15,7 +14,29 @@ let cameraOffset = new THREE.Vector3(10,20,10);
 let width = 1024,
     height = 768;
 
+let stats = new Stats();
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+// align top-left
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+
 screen.create = function(data) {
+  document.body.appendChild(stats.domElement);
+
+  let width = 1024,
+      height = 768;
+
+  let renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  state.renderer = renderer;
+
+  document.body.appendChild(renderer.domElement);
+
   let scene = new THREE.Scene();
   state.scene = scene;
 
@@ -42,16 +63,20 @@ screen.create = function(data) {
 
   state.scene.add(fadeObject);
 
-  state.scene.add(particles.group);
-
   network.connect(data.token);
 }
 
 screen.destroy = function() {
-  //TODO?
+  document.body.removeChild(stats.domElement);
+  document.body.removeChild(renderer.domElement);
+  network.disconnect();
 }
 
 screen.update  = function(delta) {
+  stats.begin();
+
+  state.renderer.render(state.scene, state.camera);
+
   TWEEN.update();
 
   let inputDelta = input.update(delta);
@@ -81,6 +106,9 @@ screen.update  = function(delta) {
   }
 
   fadeObject.position.copy(state.camera.position);
+
+  stats.end();
+
 }
 
 screen.fadeOut = function(time) {

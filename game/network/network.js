@@ -1,14 +1,11 @@
 /* global THREE */
 /* client only */
 const io = require('socket.io-client');
+const request = require('request');
 const objects = require('../objects/objects.js');
 const state = require('../state.js');
 
-const request = require('request');
-
-
 let socket = null;
-let localOnly = false;
 
 let create = function(data) {
   let obj = objects[data.type].create(data);
@@ -25,34 +22,35 @@ let setIndex = function(index) {
 }
 
 module.exports.connect = function(token) {
-
-
   console.log('token received, attempting to connect web socket');
-  socket = io.connect('wss://' + window.location.hostname + ':8080', {
-    query: 'token=' + token
+  socket = io.connect('wss://' + window.location.host); // includes port
+
+  socket.on('connect', () => {
+    socket.emit('authenticate', {token: token});
   });
 
-  socket.emit('hello', token, function(playerData, chunkName) {
-    // TODO: customize player based on data
-    state.screen.enterChunk(chunkName).then(() => {
-      socket.emit('chunkReady', chunkName, setIndex);
+  socket.on('authenticated', () => {
+    socket.emit('hello', (chunkName) => {
+      state.screen.enterChunk(chunkName).then(() => {
+        socket.emit('chunkReady', chunkName, setIndex);
+      });
     });
   });
 
-  socket.on('new', function(data) {
+  socket.on('new', (data) => {
     create(data);
   });
 
-  socket.on('objects', function(data) {
+  socket.on('objects', (data) => {
     if(data.chunk !== state.chunk.name) { return; }
     data.objects.forEach(create);
   });
 
-  socket.on('leave', function(data) {
+  socket.on('leave', (data) => {
     leave(data);
   });
 
-  socket.on('chunk', function(data) {
+  socket.on('chunk', (data) => {
     module.exports.playerIndex = null;
     state.screen.enterChunk(data.connection).then(() => {
       socket.emit('chunkReady', data.connection, function(index, pos) {
@@ -62,8 +60,7 @@ module.exports.connect = function(token) {
     });
   });
 
-  socket.on('update', function(data) {
-    if(localOnly) { return; }
+  socket.on('update', (data) => {
     if(data.chunk !== state.chunk.name) { return; }
 
     Object.keys(state.chunk.objects).forEach((objKey) => {
@@ -73,27 +70,33 @@ module.exports.connect = function(token) {
 
     data.events.forEach((data) => {
       let obj = state.chunk.objects[data.index];
-      if(!obj) {
-        return;
-      }
+      if(!obj) { return; }
       obj.netEvents.push(data);
       obj.netActive = true;
     });
   });
 
-  socket.on('disconnect', function(arg) {
-    console.log('disconnected', arg);
+  socket.on('disconnect', (arg) => {
+    console.log('net disconnected', arg);
   });
-  socket.on('error', function(arg) {
-    console.log('error', arg);
+  socket.on('error', (arg) => {
+    console.log('net error', arg);
   });
 };
 
-module.exports.authenticate = function(username, password) {
+module.exports.disconnect = function() {
+  if(socket) {
+    socket.disconnect();
+    delete module.exports.playerIndex;
+    socket = null;
+  }
+};
+
+module.exports.serverAction = function(username, password, action) {
   let origin = window.location.origin;
   let promise = new Promise((resolve, reject) => {
     request.post({
-      url: origin + '/authenticate',
+      url: origin + action,
       json: {
         username: username,
         password: password
@@ -111,5 +114,7 @@ module.exports.authenticate = function(username, password) {
 };
 
 module.exports.sendInputDelta = function(inputDelta) {
-  socket.emit('input', inputDelta);
+  if(socket) {
+    socket.emit('input', inputDelta);
+  }
 };
