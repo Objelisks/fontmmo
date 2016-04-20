@@ -26,3 +26,26 @@ module.exports.start = function() {
 
   return promise;
 }
+
+module.exports.autosaveUser = function(socket) {
+  let location = {
+    chunk: socket.meta.currentChunk,
+    x: socket.meta.player.position.x,
+    z: socket.meta.player.position.z,
+    justEnteredFrom: socket.meta.player.justEnteredFrom
+  };
+  let db = module.exports.db;
+  let promise = new Promise((resolve, reject) => {
+    db.collection('users').updateOne(
+      {"username": socket.meta.token.username},
+      {$set: {["characters." + socket.meta.activeCharacter + ".location"]: location}},
+      (err, res) => {
+        if(!err) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+  });
+  return promise;
+}

@@ -13,6 +13,19 @@ database.start().then(() => {
   fileserve.start();
   sockets.start();
 
+  process.on('unexpectedException', (err) => {
+    // TODO: save to database and close
+    database.db.close();
+
+    fileserve.server.close();
+
+    // TODO: tell clients we're leaving
+    sockets.io.close();
+
+    // actually crash
+    throw err;
+  });
+
   // main server update loop
   setInterval(function() {
     Object.keys(chunkMan.chunks).forEach(function(chunkName) {

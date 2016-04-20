@@ -1,6 +1,7 @@
 /* server only */
 const fs = require('fs');
 const createChunk = require('../game/world/chunk.js').createChunk;
+const database = require('./database.js');
 
 module.exports = {};
 module.exports.chunks = {};
@@ -38,6 +39,8 @@ module.exports.enterChunk = function(chunk, socket) {
       outputPoint.add(new THREE.Vector3((zone.c.x - zone.a.x) * Math.random(), 0, (zone.c.z - zone.a.z) * Math.random()));
       socket.meta.player.position.copy(outputPoint);
     }
+
+    database.autosaveUser(socket);
   }
 }
 

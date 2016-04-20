@@ -55,24 +55,12 @@ let LoginBox = React.createClass({
   }
 });
 
-let width = 1024,
-    height = 768;
-
 screen.create = function() {
-  let scene = new THREE.Scene();
-  state.scene = scene;
-
-  let camera = new THREE.PerspectiveCamera(60, width/height, 1, 1000);
-  camera.position.set(0,10,-10);
-  camera.lookAt(new THREE.Vector3(0,0,0));
-  state.camera = camera;
-
-  // add login buttons
   ReactDOM.render(<LoginBox />, document.getElementById('game'));
 };
 
 screen.destroy = function() {
-  //TODO?
+  ReactDOM.unmountComponentAtNode(document.getElementById('game'));
 };
 
 screen.update = function() {

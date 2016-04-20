@@ -70,6 +70,7 @@ screen.destroy = function() {
   document.body.removeChild(stats.domElement);
   document.body.removeChild(renderer.domElement);
   network.disconnect();
+  // TODO: destroy some more stuff
 }
 
 screen.update  = function(delta) {

@@ -16,9 +16,10 @@ let leave = function(data) {
   state.chunk.removeIndex(data.index);
 }
 
-let setIndex = function(index) {
+let handleChunkReady = function(index, pos) {
   console.log('local index', index);
   module.exports.playerIndex = index;
+  module.exports.playerRelocate = pos;
 }
 
 module.exports.connect = function(token) {
@@ -32,7 +33,7 @@ module.exports.connect = function(token) {
   socket.on('authenticated', () => {
     socket.emit('hello', (chunkName) => {
       state.screen.enterChunk(chunkName).then(() => {
-        socket.emit('chunkReady', chunkName, setIndex);
+        socket.emit('chunkReady', chunkName, handleChunkReady);
       });
     });
   });
@@ -53,10 +54,7 @@ module.exports.connect = function(token) {
   socket.on('chunk', (data) => {
     module.exports.playerIndex = null;
     state.screen.enterChunk(data.connection).then(() => {
-      socket.emit('chunkReady', data.connection, function(index, pos) {
-        setIndex(index);
-        module.exports.playerRelocate = pos;
-      });
+      socket.emit('chunkReady', data.connection, handleChunkReady);
     });
   });
 

@@ -9,6 +9,8 @@ const secret = require('./secret.js');
 module.exports.start = function() {
   let io = require('socket.io').listen(fileserve.server);
 
+  module.exports.io = io;
+
   // deploy game server
   io.on('connection', socketioJwt.authorize({
     secret: secret,
@@ -24,8 +26,13 @@ module.exports.start = function() {
     // sent to server on connect
     socket.on('hello', function(fn) {
       let token = socket.decoded_token;
+      socket.meta.token = token;
+      socket.meta.activeCharacter = 0;
+
+      console.log('hello', socket.meta.token.username);
+
       database.db.collection('users').findOne({username: token.username}, (err, data) => {
-        let character = data.characters[0];
+        let character = data.characters[socket.meta.activeCharacter];
 
         // generate player model from stored customization parameters
         socket.meta.player = actor.create(character);
@@ -35,19 +42,20 @@ module.exports.start = function() {
         let chunkName = character.location.chunk || "waterfall";
         socket.meta.player.position.x = character.location.x;
         socket.meta.player.position.z = character.location.z;
+        socket.meta.player.justEnteredFrom = character.location.justEnteredFrom;
 
         // load chunk if needed
         let activeChunk = chunkMan.loadChunk(chunkName);
 
         chunkMan.enterChunk(activeChunk, socket);
 
-        console.log('hello', socket.meta.index, socket.token);
         fn(chunkName); // ack
       });
     });
 
     socket.on('chunkReady', function(data, fn) {
       socket.meta.ready = true;
+      // TODO: handle rando data
 
       // tell socket player about actors in the new chunk
       let chunkObjects = chunkMan.chunks[data].getObjectsMessage();
@@ -68,7 +76,8 @@ module.exports.start = function() {
     });
 
     socket.on('disconnect', function() {
-      console.log('goodbye', socket.meta.index);
+      console.log('goodbye', socket.meta.token.username);
+      //database.autosaveUser(socket);?
       chunkMan.leaveChunk(chunkMan.chunks[socket.meta.currentChunk], socket);
     });
   });
