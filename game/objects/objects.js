@@ -1,3 +1,1 @@
-let objects = {};
-objects.actor = require('./actor.js');
-module.exports = objects;
+module.exports.actor = require('./actor.js');

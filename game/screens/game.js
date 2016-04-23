@@ -9,7 +9,7 @@ let screen = {};
 
 let fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
   new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
-let cameraOffset = new THREE.Vector3(10,20,10);
+let cameraOffset = new THREE.Vector3(5,10,5);
 
 let width = 1024,
     height = 768;

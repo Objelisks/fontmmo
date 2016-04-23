@@ -5,3 +5,4 @@ ssl/*.key
 static/compiled.js
 node_modules
 npm-debug.log
+*.blend1

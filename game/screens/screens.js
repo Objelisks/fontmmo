@@ -1,4 +1,2 @@
-var screens = {};
-screens.login = require('./login.js');
-screens.game = require('./game.js');
-module.exports = screens;
+module.exports.login = require('./login.js');
+module.exports.game = require('./game.js');

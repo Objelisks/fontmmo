@@ -7,7 +7,7 @@ let screen = {};
 
 let LoginBox = React.createClass({
   getInitialState: function() {
-    return {username: '', password: ''};
+    return {username: localStorage.getItem('username') || '', password: ''};
   },
   handleUsername: function(event) {
     this.setState({ username: event.target.value });
@@ -22,6 +22,7 @@ let LoginBox = React.createClass({
       .then((token) => {
         console.log('login successful', token);
         state.token = token;
+        localStorage.setItem('username', this.state.username);
         // transition
         screen.transition = true;
         screen.transitionToScreen = 'game';

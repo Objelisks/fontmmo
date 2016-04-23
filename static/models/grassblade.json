@@ -1,0 +1,32 @@
+{
+    "name":"PlaneGeometry.2",
+    "materials":[{
+        "depthTest":true,
+        "wireframe":false,
+        "colorEmissive":[0,0,0],
+        "shading":"lambert",
+        "DbgName":"Material",
+        "DbgIndex":0,
+        "DbgColor":15658734,
+        "transparent":false,
+        "opacity":1,
+        "colorDiffuse":[0.349,0.8,0.297],
+        "blending":"NormalBlending",
+        "depthWrite":true,
+        "visible":true
+    }],
+    "vertices":[0.002,0.217,-0.011,-0.043,-0.001,0.072,0.022,0.19,-0.066,0.001,-0.001,-0.051,-0.124,0.52,0.002],
+    "faces":[42,1,3,2,0,0,1,2,0,1,2,42,0,4,1,0,3,4,0,3,4,0,42,0,1,2,0,3,0,2,3,0,2,42,0,2,4,0,3,2,4,3,2,4],
+    "metadata":{
+        "normals":5,
+        "version":3,
+        "uvs":1,
+        "materials":1,
+        "type":"Geometry",
+        "vertices":5,
+        "faces":4,
+        "generator":"io_three"
+    },
+    "uvs":[[1,1,0.097,0.994,0,0.638,0.434,0.589,1,0]],
+    "normals":[0.875,-0.001,0.485,0.939,-0.077,0.335,0.95,0.077,0.302,0.838,0.21,0.504,0.726,0.272,0.632]
+}

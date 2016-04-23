@@ -2,6 +2,7 @@
 const importer = require('./import.js');
 const state = require('../state.js');
 const chunkHelper = require('./chunkHelper.js');
+const decor = require('../decor/decor.js');
 
 /*
 on enter exit zone, start loading next chunk
