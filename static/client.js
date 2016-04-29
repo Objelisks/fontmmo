@@ -22,7 +22,7 @@ let render = function() {
     state.screen = screens[screen.transitionToScreen];
     state.screen.create(screen.transitionData);
   }
-  
+
   requestAnimationFrame(render);
 }
 render();

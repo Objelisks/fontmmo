@@ -28,6 +28,7 @@
     "express": "^4.13.4",
     "jsonwebtoken": "^5.7.0",
     "mongodb": "^2.1.16",
+    "msgpack-lite": "^0.1.20",
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
     "request": "^2.71.0",
