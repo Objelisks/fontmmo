@@ -1,21 +1,20 @@
 /* global THREE, TWEEN */
-const state = require('../state.js');
-state.width = 1024;
-state.height = 768;
-
+let state = require('../state.js');
 const actor = require('../objects/actor.js');
 const input = require('../control/input.js');
 const network = require('../network/network.js');
 const importer = require('../world/import.js');
 const gpgpu = require('../particle/gpgpu.js');
-const particles = require('../particle/ps.js');
+const ps = require('../particle/ps.js');
+const particles = require('../particle/particles.js');
+const mixShader = require('../shaders/mixShader.js')();
 
 let screen = {};
 
 let fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
   new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
-let cameraOffset = new THREE.Vector3(5,10,5);
-let tempTarget = new THREE.WebGLRenderTarget();
+let cameraOffset = new THREE.Vector3(10,20,10);
+let worldTarget = new THREE.WebGLRenderTarget(state.width, state.height);
 
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -65,6 +64,8 @@ screen.create = function(data) {
 
   state.scene.add(fadeObject);
 
+  let hypercube = particles.hypercube.create(16);
+  ps.addSystem(hypercube);
 
   network.connect(data.token);
 }
@@ -80,14 +81,16 @@ screen.update  = function(delta) {
   stats.begin();
 
   // render game world to target, force clear
-  gpgpu.render(state.scene, state.camera, tempTarget, true);
+  gpgpu.render(state.scene, state.camera, worldTarget, true);
+
+  ps.simulateSystems();
 
   // render particle systems with glow
-  let particleRenderTarget = particles.renderSystems(tempTarget);
+  let particleRenderTarget = ps.renderParticles(worldTarget);
 
   // mix blurred texture with screen texture and render to screen
   mixShader.setTextures(worldTarget, particleRenderTarget);
-  gpgpu.out(mixShader);
+  gpgpu.out(mixShader.material);
 
   TWEEN.update();
 

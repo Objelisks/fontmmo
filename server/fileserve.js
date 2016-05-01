@@ -76,6 +76,21 @@ module.exports.start = function() {
 
     // validate correct format
     let user = req.body;
+
+    if(user.token) {
+      if(typeof user.token !== 'string') {
+        return res.json({message: 'invalid login'});
+      }
+      jwt.verify(user.token, secret, (err, decoded) => {
+        if(err) {
+          return res.json({message: err});
+        } else {
+          return res.json({token: user.token});
+        }
+      });
+      return;
+    }
+
     if(!user.username || !user.password || typeof user.username !== 'string' || typeof user.password !== 'string') {
       return res.json({message: 'invalid login'});
     }

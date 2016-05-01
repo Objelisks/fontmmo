@@ -90,15 +90,20 @@ module.exports.disconnect = function() {
   }
 };
 
-module.exports.serverAction = function(username, password, action) {
+module.exports.serverAction = function(action, usernameOrToken, password) {
   let origin = window.location.origin;
   let promise = new Promise((resolve, reject) => {
+    let req = {};
+    if(password) {
+      req['username'] = usernameOrToken;
+      req['password'] = password;
+    } else {
+      req['token'] = usernameOrToken;
+    }
     request.post({
-      url: origin + action,
-      json: {
-        username: username,
-        password: password
-      }},
+        url: origin + action,
+        json: req
+      },
       (err, res) => {
         if(err) { return reject(err); }
         if(res.body.token) {

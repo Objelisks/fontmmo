@@ -21,17 +21,23 @@ var GPGPU = function ( renderer ) {
 
 	this.pass = function ( shader, target ) {
 
-		mesh.material = shader.material;
+		mesh.material = shader;
 		this.renderer.render( scene, camera, target, false );
 
 	};
 
 	this.out = function ( shader ) {
 
-		mesh.material = shader.material;
+		mesh.material = shader;
 		this.renderer.render( scene, camera );
 
 	};
+
+  this.clear = function( target ) {
+
+    this.renderer.clearTarget( target );
+
+  };
 
   this.setRenderer = function ( renderer ) {
 

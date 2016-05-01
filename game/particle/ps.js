@@ -1,72 +1,58 @@
+let state = require('../state.js');
 const gpgpu = require('./gpgpu.js');
+const blurShader = require('../shaders/blurShader.js')();
+const copyShader = require('../shaders/copyShader.js')();
 
-// size: (power of 2)
-module.exports.create = function(size, simCode) {
-  let geometry = new THREE.Geometry();
-  let material = new THREE.LineBasicMaterial({color: 0xffffff});
-  let ps = new THREE.LineSegments(geometry, material);
+let systems = {};
+let scene = new THREE.Scene();
+let systemIndicies = 0;
 
-  // TODO: initialize particles, origins
-
-  ps.simulateShader = new THREE.ShaderMaterial({
-    uniforms: {
-      particles: {type: 't', value: null},
-      origins: {type:'t', value: null},
-      time: {type:'f', value: 0}
-    },
-    vertexShader: `
-    varying vec2 vUv;
-
-    void main() {
-      vUv = vec2(uv.x, 1.0 - uv.y);
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-    `,
-    fragmentShader: `
-    uniform sampler2D particles;
-    uniform sampler2D origins;
-    uniform float time;
-    varying vec2 vUv;
-
-    void main() {
-      vec4 pos = texture2D(positions, vUv);
-      if(pos.w <= 0.0) {
-        pos.xyz = texture2D(origins, vUv).xyz;
-        pos.w = 1.0;
-      } else {
-        if(pos.w <= 0.0) discard;
-        // simulate
-        // insert glsl for simulation here
-      }
-      gl_FragColor = pos;
-    }
-    `
-  });
-
-  return ps;
+module.exports.addSystem = function(system) {
+  system.index = systemIndicies;
+  systemIndicies += 1;
+  systems[system.index] = system;
+  scene.add(system);
 };
 
-module.exports.simulateSystem = function(system) {
-  system.simulateShader.uniforms.time += 0.016;
-  gpgpu.pass(system.simulateShader, system.uniforms.positions);
+module.exports.simulateSystems = function() {
+  Object.keys(systems).forEach((systemKey) => {
+    let system = systems[systemKey];
+    system.simulateShader.uniforms.time.value += 0.016;
+    gpgpu.pass(system.simulateShader, system.positionsFlip);
+    system.material.uniforms.map.value = system.positionsFlip;
+
+    let temp = system.simulateShader.uniforms.positions.value;
+    system.simulateShader.uniforms.positions.value = system.positionsFlip;
+    system.positionsFlip = temp;
+  });
 };
 
 let particlesTarget = new THREE.WebGLRenderTarget(state.width, state.height);
-let blurDepth = 4;
+let blurHorizontalTarget = new THREE.WebGLRenderTarget(state.width / 8, state.height / 8, {minFilter: THREE.LinearFilter});
+let blurVerticalTarget = new THREE.WebGLRenderTarget(state.width / 8, state.height / 8, {minFilter: THREE.LinearFilter});
+let blurDepth = 1;
 
 module.exports.renderParticles = function(worldTarget) {
-  particlesTarget.clear();
+  //gpgpu.clear(particlesTarget);
+
   // particle render to texture with depth test
-  systems.forEach((system) => {
-    system.renderShader.setDepthTexture(worldTarget);
-    gpgpu.pass(system.renderShader, particlesTarget);
+  Object.keys(systems).forEach((systemKey) => {
+    let system = systems[systemKey];
+    //system.renderShader.setDepthTexture(worldTarget);
+    gpgpu.render(scene, state.camera, particlesTarget);
   });
+/*
+  gpgpu.pass(copyShader.setTexture(particlesTarget).material, blurVerticalTarget);
 
   // blur texture
   for(let i=0; i<blurDepth; i++) {
-    blurShader.setSource(particlesTarget);
-    gpgpu.pass(blurShader, blurredTarget);
+    blurShader.setTexture(blurVerticalTarget);
+    blurShader.setDelta(1/state.width, 0);
+    gpgpu.pass(blurShader.material, blurHorizontalTarget);
+    blurShader.setTexture(blurHorizontalTarget);
+    blurShader.setDelta(0, 1/state.height);
+    gpgpu.pass(blurShader.material, blurVerticalTarget);
   }
-
-  return blurredTarget;
+*/
+  return particlesTarget;
 };

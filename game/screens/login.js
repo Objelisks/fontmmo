@@ -5,6 +5,13 @@ const ReactDOM = require('react-dom');
 
 let screen = {};
 
+let switchToGame = function(token) {
+  // transition
+  screen.transition = true;
+  screen.transitionToScreen = 'game';
+  screen.transitionData = {token: token};
+};
+
 let LoginBox = React.createClass({
   getInitialState: function() {
     return {username: localStorage.getItem('username') || '', password: ''};
@@ -18,15 +25,13 @@ let LoginBox = React.createClass({
   handleLogin: function(event) {
     if(event) { event.preventDefault(); }
     console.log('logging in...');
-    network.serverAction(this.state.username, this.state.password, '/authenticate')
+    network.serverAction('/authenticate', this.state.username, this.state.password)
       .then((token) => {
         console.log('login successful', token);
         state.token = token;
         localStorage.setItem('username', this.state.username);
-        // transition
-        screen.transition = true;
-        screen.transitionToScreen = 'game';
-        screen.transitionData = {token: token};
+        localStorage.setItem('token', token);
+        switchToGame(token);
       })
       .catch((err) => {
         console.log('login error:', err);
@@ -35,7 +40,7 @@ let LoginBox = React.createClass({
   handleRegister: function(event) {
     if(event) { event.preventDefault(); }
     console.log('registering account...');
-    network.serverAction(this.state.username, this.state.password, '/register')
+    network.serverAction('/register', this.state.username, this.state.password)
       .then((message) => {
         console.log('registration successful...');
         this.handleLogin();
@@ -57,7 +62,19 @@ let LoginBox = React.createClass({
 });
 
 screen.create = function() {
-  ReactDOM.render(<LoginBox />, document.getElementById('game'));
+  let token = localStorage.getItem('token');
+  if(token) {
+    network.serverAction('/authenticate', token)
+      .then((message) => {
+        switchToGame(message);
+      })
+      .catch((err) => {
+        localStorage.setItem('token', undefined);
+        ReactDOM.render(<LoginBox />, document.getElementById('game'));
+      });
+  } else {
+    ReactDOM.render(<LoginBox />, document.getElementById('game'));
+  }
 };
 
 screen.destroy = function() {
