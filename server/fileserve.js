@@ -25,6 +25,7 @@ module.exports.start = function() {
     if(!req.body) { return res.json({message: 'invalid message'}); }
 
     // validate correct format
+    // TODO: use lgtm module to validate objects
     let user = req.body;
     if(!user.username || !user.password) { return res.json({message: 'invalid message'}); }
     if(typeof user.username !== 'string' || user.username.length < 4) { return res.json({message: 'invalid username'}); }

@@ -7,12 +7,12 @@ const importer = require('../world/import.js');
 const gpgpu = require('../particle/gpgpu.js');
 const ps = require('../particle/ps.js');
 const particles = require('../particle/particles.js');
-const mixShader = require('../shaders/mixShader.js')();
+const copyShader = require('../shaders/copyShader.js')();
 
 let screen = {};
 
 let fadeObject = new THREE.Mesh(new THREE.SphereGeometry(2),
-  new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide}));
+  new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite:false}));
 let cameraOffset = new THREE.Vector3(10,20,10);
 let worldTarget = new THREE.WebGLRenderTarget(state.width, state.height);
 
@@ -27,10 +27,10 @@ screen.create = function(data) {
   document.body.appendChild(stats.domElement);
 
   let renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    autoClear: false
+    antialias: true
   });
   renderer.setSize(state.width, state.height);
+  renderer.autoClear = false;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   state.renderer = renderer;
@@ -41,7 +41,7 @@ screen.create = function(data) {
   let scene = new THREE.Scene();
   state.scene = scene;
 
-  let camera = new THREE.PerspectiveCamera(60, state.width/state.height, 1, 1000);
+  let camera = new THREE.PerspectiveCamera(60, state.width/state.height, 1, 50);
   camera.position.set(0,10,-10);
   camera.lookAt(new THREE.Vector3(0,0,0));
   state.camera = camera;
@@ -64,9 +64,6 @@ screen.create = function(data) {
 
   state.scene.add(fadeObject);
 
-  let hypercube = particles.hypercube.create(16);
-  ps.addSystem(hypercube);
-
   network.connect(data.token);
 }
 
@@ -81,16 +78,19 @@ screen.update  = function(delta) {
   stats.begin();
 
   // render game world to target, force clear
-  gpgpu.render(state.scene, state.camera, worldTarget, true);
+  //gpgpu.clear(worldTarget);
+  state.renderer.render(state.scene, state.camera, undefined, true);
+  //gpgpu.render(state.scene, state.camera, worldTarget);
 
+  // update all particles on gpu
   ps.simulateSystems();
 
   // render particle systems with glow
-  let particleRenderTarget = ps.renderParticles(worldTarget);
+  ps.renderParticles(worldTarget);
 
-  // mix blurred texture with screen texture and render to screen
-  mixShader.setTextures(worldTarget, particleRenderTarget);
-  gpgpu.out(mixShader.material);
+  // copy output to screen
+  //copyShader.setTexture(worldTarget);
+  //gpgpu.out(copyShader.material);
 
   TWEEN.update();
 

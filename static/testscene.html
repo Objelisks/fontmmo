@@ -1,0 +1,89 @@
+<html>
+<body>
+<script src="./three.js"></script>
+<script id="vert-shader">
+varying vec3 vPosition;
+
+void main() {
+  vPosition = position;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
+}
+</script>
+<script id="frag-shader">
+varying vec3 vPosition;
+
+void main() {
+  gl_FragColor = vec4( vec3(1.0), 1.0 );
+}
+</script>
+<script>
+  var width = 1024, height = 768;
+
+  var renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.autoClear = false;
+  //gpgpu.setRenderer(renderer);
+
+  document.body.appendChild(renderer.domElement);
+
+  var camera = new THREE.PerspectiveCamera(60, width/height, 1, 50);
+  camera.position.set(0,10,-10);
+  camera.lookAt(new THREE.Vector3(0,0,0));
+
+  var createScene = function() {
+    var scene = new THREE.Scene();
+
+    var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5,10,-5);
+    scene.add(dirLight);
+
+    var ambLight = new THREE.AmbientLight(0x808080);
+    scene.add(ambLight);
+
+    return scene;
+  }
+
+  var scene = createScene();
+  var scene2 = createScene();
+
+  var cameraOffset = new THREE.Vector3(10,20,10);
+
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(10, 10).rotateX(-Math.PI/2).translate(0, 0, 0), new THREE.MeshStandardMaterial({color: 0xaaffaa})));
+  scene2.add(new THREE.Mesh(new THREE.PlaneGeometry(10, 10).rotateX(-Math.PI/2).translate(5, 1, -5), new THREE.MeshStandardMaterial({color: 0xffaaaa})));
+  scene2.add(new THREE.Mesh(new THREE.PlaneGeometry(10, 10).rotateX(-Math.PI/2).translate(-5, -1, 5), new THREE.MeshStandardMaterial({color: 0xaaaaff})));
+
+  var bufferGeo = new THREE.BufferGeometry();
+  var pos = new Float32Array(100*3);
+  for(var i=0; i<pos.length; i+=6) {
+    pos[i+0] = Math.random()*10-5;
+    pos[i+1] = -10;
+    pos[i+2] = Math.random()*10-5;
+    pos[i+3] = pos[i+0];
+    pos[i+4] = 10;
+    pos[i+5] = pos[i+2];
+  }
+  bufferGeo.addAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  var material = new THREE.ShaderMaterial({
+    uniforms: {},
+    vertexShader: document.getElementById('vert-shader').innerText,
+    fragmentShader: document.getElementById('frag-shader').innerText
+  });
+
+  scene2.add(new THREE.LineSegments(bufferGeo, material));
+
+  var render = function() {
+    requestAnimationFrame(render);
+    renderer.render(scene, camera, undefined, true);
+    renderer.render(scene2, camera);
+
+    camera.position.lerp(cameraOffset, 0.1);
+    camera.lookAt(new THREE.Vector3(0,0,0));
+  }
+  render();
+
+</script>
+</body>
+</html>

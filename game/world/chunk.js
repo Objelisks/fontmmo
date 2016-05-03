@@ -3,6 +3,9 @@ const importer = require('./import.js');
 const state = require('../state.js');
 const chunkHelper = require('./chunkHelper.js');
 const decor = require('../decor/decor.js');
+const particles = require('../particle/particles.js');
+const ps = require('../particle/ps.js');
+const poly = require('../utils/polygon.js');
 
 /*
 on enter exit zone, start loading next chunk
@@ -70,6 +73,9 @@ module.exports.createChunk = function(data) {
   chunk.objects = {};
 
   chunk.walls = data.walls;
+
+  let grass = particles.grass.create(512, poly.randomPointInPolygon(chunk.walls[0]));
+  ps.addSystem(grass);
 
   Object.assign(chunk, chunkHelper.chunkMethods);
 

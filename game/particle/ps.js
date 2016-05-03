@@ -1,7 +1,8 @@
-let state = require('../state.js');
+const state = require('../state.js');
 const gpgpu = require('./gpgpu.js');
 const blurShader = require('../shaders/blurShader.js')();
 const copyShader = require('../shaders/copyShader.js')();
+const network = require('../network/network.js');
 
 let systems = {};
 let scene = new THREE.Scene();
@@ -17,30 +18,40 @@ module.exports.addSystem = function(system) {
 module.exports.simulateSystems = function() {
   Object.keys(systems).forEach((systemKey) => {
     let system = systems[systemKey];
-    system.simulateShader.uniforms.time.value += 0.016;
-    gpgpu.pass(system.simulateShader, system.positionsFlip);
-    system.material.uniforms.map.value = system.positionsFlip;
+    if(system.simulateShader) {
+      system.simulateShader.uniforms.time.value += 0.016;
+      gpgpu.pass(system.simulateShader, system.positionsFlip);
+      system.material.uniforms.map.value = system.positionsFlip;
 
-    let temp = system.simulateShader.uniforms.positions.value;
-    system.simulateShader.uniforms.positions.value = system.positionsFlip;
-    system.positionsFlip = temp;
+      let temp = system.simulateShader.uniforms.positions.value;
+      system.simulateShader.uniforms.positions.value = system.positionsFlip;
+      system.positionsFlip = temp;
+    }
   });
 };
-
+/*
 let particlesTarget = new THREE.WebGLRenderTarget(state.width, state.height);
 let blurHorizontalTarget = new THREE.WebGLRenderTarget(state.width / 8, state.height / 8, {minFilter: THREE.LinearFilter});
 let blurVerticalTarget = new THREE.WebGLRenderTarget(state.width / 8, state.height / 8, {minFilter: THREE.LinearFilter});
 let blurDepth = 1;
-
+*/
 module.exports.renderParticles = function(worldTarget) {
   //gpgpu.clear(particlesTarget);
 
-  // particle render to texture with depth test
+  // update system uniforms
   Object.keys(systems).forEach((systemKey) => {
     let system = systems[systemKey];
-    //system.renderShader.setDepthTexture(worldTarget);
-    gpgpu.render(scene, state.camera, particlesTarget);
+    system.material.uniforms.time.value += 0.016;
+    if(network.playerIndex && state.chunk && state.chunk.objects[network.playerIndex]) {
+      let player = state.chunk.objects[network.playerIndex];
+      system.material.uniforms.collider.value = [player.position.x, player.position.z];
+    }
   });
+
+  // render particle scene on top of existing world scene
+  //gpgpu.render(scene, state.camera, worldTarget);
+  state.renderer.render(scene, state.camera);
+
 /*
   gpgpu.pass(copyShader.setTexture(particlesTarget).material, blurVerticalTarget);
 
@@ -54,5 +65,5 @@ module.exports.renderParticles = function(worldTarget) {
     gpgpu.pass(blurShader.material, blurVerticalTarget);
   }
 */
-  return particlesTarget;
+  return worldTarget;
 };
