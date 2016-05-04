@@ -78,9 +78,9 @@ screen.update  = function(delta) {
   stats.begin();
 
   // render game world to target, force clear
-  //gpgpu.clear(worldTarget);
-  state.renderer.render(state.scene, state.camera, undefined, true);
-  //gpgpu.render(state.scene, state.camera, worldTarget);
+  gpgpu.clear(worldTarget);
+  //state.renderer.render(state.scene, state.camera, undefined, true);
+  gpgpu.render(state.scene, state.camera, worldTarget);
 
   // update all particles on gpu
   ps.simulateSystems();
@@ -89,8 +89,8 @@ screen.update  = function(delta) {
   ps.renderParticles(worldTarget);
 
   // copy output to screen
-  //copyShader.setTexture(worldTarget);
-  //gpgpu.out(copyShader.material);
+  copyShader.setTexture(worldTarget);
+  gpgpu.out(copyShader.material);
 
   TWEEN.update();
 

@@ -40,7 +40,8 @@ module.exports = {
     let material = new THREE.ShaderMaterial({
       uniforms: {
         map: {type: 't', value: positionsTarget},
-        size: {type: 'f', value: 1.0}
+        size: {type: 'f', value: 1.0},
+        time: {type: 'f', value: 0.0}
       },
       vertexShader: `
       uniform sampler2D map;
@@ -112,7 +113,7 @@ module.exports = {
           pos.xyz = texture2D(origins, vec2(rand(vec2(time, vUv.x)), rand(vec2(time, vUv.y)))).xyz;
           pos.w = 1.0;
         } else {
-          if( rand( vUv + time ) > 0.99 || pos.w <= 0.0) discard;
+          if( rand( vUv + time ) > 0.9 || pos.w <= 0.0) discard;
           // simulate
           // insert glsl for simulation here
           float x = pos.x + time * 5.0;
@@ -128,6 +129,8 @@ module.exports = {
       }
       `
     });
+
+    system.blur = false;
 
     return system;
   }

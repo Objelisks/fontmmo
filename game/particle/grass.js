@@ -9,7 +9,7 @@ module.exports = {
         pos = distFunc();
         y = 0;
       } else {
-        y = 0.3;
+        y = 0.4;
       }
 
       positions[j] = pos.x;
@@ -20,12 +20,10 @@ module.exports = {
 
     let material = new THREE.ShaderMaterial({
       uniforms: {
-        time: {type: 'f', value: 0},
-        collider: {type: '2f', value: [0,0]}
+          time: {type: 'f', value: 0}
       },
       vertexShader: `
       uniform float time;
-      uniform vec2 collider;
 			varying vec3 vPosition;
       varying vec3 colorOffset;
 
@@ -36,8 +34,7 @@ module.exports = {
 			void main() {
 				vPosition = position;
 
-        vPosition.x += vPosition.y * sin(time/5.0) * 0.4 + vPosition.y * cos(vPosition.z + time/3.0) * 0.5;
-        //vPosition.y -= clamp(vPosition.y * (1.0 / (distance(collider, vPosition.xz)/0.5)), 0.0, 0.3);
+        vPosition.x += vPosition.y * sin(time/2.0) * 0.2 + vPosition.y * cos(vPosition.z + time/2.0) * 0.1;
 
         colorOffset = vec3(rand(position.xz*3.0), rand(position.xz*5.0), rand(position.xz*7.0));
 
@@ -50,54 +47,12 @@ module.exports = {
       varying vec3 colorOffset;
 
 			void main() {
-				gl_FragColor = vec4( vec3(0.5, 0.8, 0.5)+colorOffset/10.0, 0.8 );
+				gl_FragColor = vec4( (vec3(0.5, 0.8, 0.5)+colorOffset/5.0), 0.5 );
 			}
       `
     });
     let system = new THREE.LineSegments(geometry, material);
-
-    /*
-    let originsTexture = new THREE.DataTexture(origins, size, size, THREE.RGBFormat, THREE.FloatType);
-    originsTexture.minFilter = THREE.NearestFilter;
-		originsTexture.magFilter = THREE.NearestFilter;
-    originsTexture.needsUpdate = true;
-
-    system.simulateShader = new THREE.ShaderMaterial({
-      uniforms: {
-        positions: {type: 't', value: positionsTarget},
-        origins: {type:'t', value: originsTexture},
-        time: {type:'f', value: 0}
-      },
-      vertexShader: `
-      varying vec2 vUv;
-
-      void main() {
-        vUv = vec2(uv.x, 1.0 - uv.y);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-      `,
-      fragmentShader: `
-      uniform sampler2D positions;
-      uniform sampler2D origins;
-      uniform float time;
-      varying vec2 vUv;
-
-      float rand(vec2 co) {
-        return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
-      }
-
-      void main() {
-        vec4 pos = texture2D(positions, vUv);
-        pos.xyz = texture2D(origins, vUv).xyz;
-        pos.w = rand(vUv);
-        if(pos.w <= 0.0) {
-          pos.w = rand(vUv);
-        }
-        gl_FragColor = pos;
-      }
-      `
-    });
-    */
+    system.blur = false;
     return system;
   }
 };
