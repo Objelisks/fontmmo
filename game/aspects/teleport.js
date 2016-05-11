@@ -1,25 +1,59 @@
-//const particles = require('')
+/*
+
+how to make abilities work with particles and such effects
+all aspects:
+  generate a network packet
+    implictly: input event, explictly: aspect event
+  client side visual effect(s)
+
+some aspects:
+
+no aspects:
+
+*/
+
+const state = require('../state.js');
 const collision = require('../interact/collision.js');
+const particles = require('../particle/particles.js');
 
 let aspect = {};
 
 // blink
 // quick teleport to nearby location
 aspect.first = {
+  cooldown: 1000,
   // called when ability button is pressed
   client_predict: function(actor) {
     console.log('blink start');
-    // starting particles
-    // disable ability
+    // spawn starting particles
+    actor.blinkParticlesStart = particles.teleport.create(32, actor.position);
+    state.chunk.particles.add(actor.blinkParticlesStart);
+
+    // make character invisible
+    actor.visible = false;
+
+    // disable character controls
   },
   client_finish: function(actor, data) {
     console.log('blink finish');
+    // once we receive message from server, wait for a second as animation, then reappear character
+    // move character to new position
     actor.position.set(data.x, actor.position.y, data.z);
-    // more particles at new location
+    // update first particle set target
+    //actor.blinkParticlesStart.target.copy(actor.position);
+    delete actor.blinkParticlesStart;
+    setTimeout(() => {
+      // make character visible
+      actor.visible = true;
+
+      // more particles at new location
+      let p = particles.teleport.create(32, actor.position);
+      state.chunk.particles.add(p);
+    }, 1000);
   },
   server: function(actor) {
     let dir = new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5);
-    dir.setLength(5);
+    dir.setLength(10);
     let movement = collision.resolveChunkWalls(actor, dir, 0.5);
     actor.position.add(movement);
 

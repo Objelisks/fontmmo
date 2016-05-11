@@ -74,10 +74,9 @@ module.exports.createChunk = function(data) {
 
   chunk.walls = data.walls;
 
+  chunk.particles = ps.create();
   let grass = particles.grass.create(256, poly.randomPointInPolygon(chunk.walls[0]));
-  ps.addSystem(grass);
-    let hyper = particles.hypercube.create(1024);
-    ps.addSystem(hyper);
+  chunk.particles.add(grass);
 
   Object.assign(chunk, chunkHelper.chunkMethods);
 

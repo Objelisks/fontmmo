@@ -47,6 +47,10 @@ database.start().then(() => {
       // send updates
       Object.keys(chunk.sockets).forEach(function(key, i, arr) {
         let socket = chunk.sockets[key];
+
+        // TODO: prepare update message directly from state afterwards, as opposed to collecting events
+        // maybe flags can be set for things like chunk transitions
+        // problem: lost information by trying to construct diff after the fact
         if(socket.meta.ready) {
           socket.emit('update', {chunk: chunk.name, events: actionEvents});
         }

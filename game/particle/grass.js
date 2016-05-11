@@ -1,3 +1,5 @@
+// static particle system, no simulation
+
 // size: (power of 2)
 module.exports = {
   create: function(size, distFunc) {
@@ -34,7 +36,7 @@ module.exports = {
 			void main() {
 				vPosition = position;
 
-        vPosition.x += vPosition.y * sin(time/2.0) * 0.2 + vPosition.y * cos(vPosition.z + time/2.0) * 0.1;
+        vPosition.x += vPosition.y * sin(time/2.0) * 0.3 + vPosition.y * cos(vPosition.z + time/2.0) * 0.4;
 
         colorOffset = vec3(rand(position.xz*3.0), rand(position.xz*5.0), rand(position.xz*7.0));
 

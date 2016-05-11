@@ -1,71 +1,85 @@
-const state = require('../state.js');
 const gpgpu = require('./gpgpu.js');
 const blurShader = require('../shaders/blurShader.js')();
 const copyShader = require('../shaders/copyShader.js')();
 const mixShader = require('../shaders/mixShader.js')();
-const network = require('../network/network.js');
+const state = require('../state.js');
 
-let systems = {};
-let scene = new THREE.Scene();
-let systemIndicies = 0;
+copyShader.material.transparent = true;
+copyShader.material.opacity = 0.3;
+copyShader.material.blending = THREE.AdditiveBlending;
 
-module.exports.addSystem = function(system) {
-  system.index = systemIndicies;
-  systemIndicies += 1;
-  systems[system.index] = system;
-  scene.add(system);
+let particlesTarget = new THREE.WebGLRenderTarget(state.width, state.height);
+let blurHorizontalTarget = new THREE.WebGLRenderTarget(state.width / 2, state.height / 2, {minFilter: THREE.LinearFilter});
+let blurVerticalTarget = new THREE.WebGLRenderTarget(state.width / 2, state.height / 2, {minFilter: THREE.LinearFilter});
+let blurDepth = 2;
+let particleEngine = {};
+
+module.exports.create = function() {
+  let pSystem = Object.assign(Object.create(particleEngine), {
+    systems: {},
+    scene: new THREE.Scene(),
+    systemIndex: 0
+  });
+  return pSystem;
+}
+
+particleEngine.add = function(system) {
+  system.index = this.systemIndex;
+  this.systemIndex += 1;
+  this.systems[system.index] = system;
+  this.scene.add(system);
 };
 
-module.exports.simulateSystems = function() {
-  Object.keys(systems).forEach((systemKey) => {
-    let system = systems[systemKey];
+particleEngine.simulate = function() {
+  Object.keys(this.systems).forEach((key) => {
+    let system = this.systems[key];
     if(system.simulateShader) {
       system.simulateShader.uniforms.time.value += 0.016;
+
       gpgpu.pass(system.simulateShader, system.positionsFlip);
       system.material.uniforms.map.value = system.positionsFlip;
 
       let temp = system.simulateShader.uniforms.positions.value;
       system.simulateShader.uniforms.positions.value = system.positionsFlip;
       system.positionsFlip = temp;
+
+      // TODO: check to see if particles are dead
+      // use deterministic time death
+      // remove from engine
     }
   });
 };
 
-let particlesTarget = new THREE.WebGLRenderTarget(state.width, state.height);
-let blurHorizontalTarget = new THREE.WebGLRenderTarget(state.width / 2, state.height / 2, {minFilter: THREE.LinearFilter});
-let blurVerticalTarget = new THREE.WebGLRenderTarget(state.width / 2, state.height / 2, {minFilter: THREE.LinearFilter});
-let blurDepth = 2;
-
-module.exports.renderParticles = function(worldTarget) {
+particleEngine.render = function(camera, worldTarget) {
   gpgpu.clear(blurVerticalTarget);
 
   // update system uniforms
-  Object.keys(systems).forEach((systemKey) => {
-    let system = systems[systemKey];
+  Object.keys(this.systems).forEach((key) => {
+    let system = this.systems[key];
     system.material.uniforms.time.value += 0.016;
   });
 
   // render particle scene on top of existing world scene
-  gpgpu.render(scene, state.camera, worldTarget);
+  gpgpu.render(this.scene, camera, worldTarget);
 
-  Object.keys(systems).forEach((systemKey) => {
-    let system = systems[systemKey];
+  Object.keys(this.systems).forEach((key) => {
+    let system = this.systems[key];
     if(system.blur) {
-      gpgpu.render(system, state.camera, blurVerticalTarget);
+      gpgpu.clear(blurVerticalTarget);
+      gpgpu.render(system, camera, blurVerticalTarget);
+
       // blur texture
       for(let i=0; i<blurDepth; i++) {
         blurShader.setTexture(blurVerticalTarget);
         blurShader.setDelta(1/state.width, 0);
-        gpgpu.pass(blurShader.material, blurHorizontalTarget);
+        this.gpgpu.pass(blurShader.material, blurHorizontalTarget);
         blurShader.setTexture(blurHorizontalTarget);
         blurShader.setDelta(0, 1/state.height);
         gpgpu.pass(blurShader.material, blurVerticalTarget);
       }
 
+      // blend blurred texture with render
       copyShader.setTexture(blurVerticalTarget);
-      copyShader.material.transparent = true;
-      copyShader.material.opacity = 0.3;
-      copyShader.material.blending = THREE.AdditiveBlending;
       gpgpu.pass(copyShader.material, worldTarget);
     }
   });

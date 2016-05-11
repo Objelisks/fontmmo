@@ -118,6 +118,7 @@ module.exports.serverAction = function(action, usernameOrToken, password) {
 
 module.exports.sendInputDelta = function(inputDelta) {
   if(socket) {
+    // TODO: only send if changed
     socket.emit('input', inputDelta);
   }
 };

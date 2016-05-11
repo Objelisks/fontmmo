@@ -1,5 +1,5 @@
 /* global THREE, TWEEN */
-let state = require('../state.js');
+const state = require('../state.js');
 const actor = require('../objects/actor.js');
 const input = require('../control/input.js');
 const network = require('../network/network.js');
@@ -81,13 +81,13 @@ screen.update  = function(delta) {
   gpgpu.clear(worldTarget);
   //state.renderer.render(state.scene, state.camera, undefined, true);
   gpgpu.render(state.scene, state.camera, worldTarget);
+  if(state.chunk) {
+    // update all particles on gpu
+    state.chunk.particles.simulate();
 
-  // update all particles on gpu
-  ps.simulateSystems();
-
-  // render particle systems with glow
-  ps.renderParticles(worldTarget);
-
+    // render particle systems with glow
+    state.chunk.particles.render(state.camera, worldTarget);
+  }
   // copy output to screen
   copyShader.setTexture(worldTarget);
   gpgpu.out(copyShader.material);

@@ -1,0 +1,74 @@
+zelda 1 structure
+topdown:
+  this is a world of its own
+  conflict
+    gem war
+  stories
+    ascension of the godhead/demiurge
+    allegories
+bottom up:
+  player mechanics
+    need way of granting mechanics
+    need things to interact with
+  i think i should be able to conjure an orb
+
+area has obstacles that require use of more than one of a single type of ability continuously to progress
+  requires team formation, add conflict where only one player can return successfully
+
+area requires specific ability that is otherwise not useful to enter
+  area difficulty is increased because of limited ability use
+
+rare areas
+  behind the waterfall
+  on top of the mountain
+  small side passage of cave
+
+
+places
+  city
+    water aquaduct things
+    planters
+    market based
+    tiered
+    building, walls as border
+  vertical slice of waterfall
+    shaders for rocks
+    water shader
+    mossy rocks as border
+  forest
+    tree parts as border
+
+waterfall cliffside
+  secret entrance behind waterfall
+
+bridge
+
+river
+
+forest
+  tall tree in center
+  birches
+
+city gates
+  illegal magic
+  sandstone
+
+city market
+  colorful blanket fort stands
+
+city temple
+
+city inner temple
+  godhead
+
+birds plains
+  doves
+
+
+
+dungeons
+  overlaps with overworld
+  allows more density, different lighting
+
+
+gem fort one
