@@ -13,20 +13,20 @@ module.exports = {
       let a = i - i % 2;
       // these are normalized coordinates (0, 1), z coordinate is unused, but THREE.js uses a vec3
       // positions texture needs to be (size, size)
-			positions[ j + 0 ] = ( a % size ) / size;
-			positions[ j + 1 ] = Math.floor( a / size ) / size;
+      positions[ j + 0 ] = ( a % size ) / size;
+      positions[ j + 1 ] = Math.floor( a / size ) / size;
       positions[ j + 2 ] = i % 2;
-		}
+    }
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     // TODO: initialize particles, origins
     let posvelTarget = new THREE.WebGLRenderTarget(size, size, {
       minFilter: THREE.NearestFilter,
-			magFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
       format: THREE.RGBAFormat,
-			type: THREE.FloatType,
-			depthBuffer: false,
-			stencilBuffer: false
+      type: THREE.FloatType,
+      depthBuffer: false,
+      stencilBuffer: false
     });
 
     let material = new THREE.ShaderMaterial({
@@ -39,50 +39,61 @@ module.exports = {
       uniform sampler2D map;
       uniform float time;
       uniform float size;
-			varying vec3 vPosition;
-			varying vec3 vVelocity;
-			varying float opacity;
-			void main() {
+      varying vec3 vPosition;
+      varying vec3 vVelocity;
+      varying float opacity;
+      void main() {
         vec2 delta = vec2(1.0 / size);
-				vec2 uv = position.xy;
-				vec4 pos = texture2D(map, uv);
+        vec2 uv = position.xy;
+        vec4 pos = texture2D(map, uv);
         vec4 vel = texture2D(map, uv + delta * vec2(1.0, 0.0));
-				vPosition = pos.xyz;
+        vPosition = pos.xyz;
         vVelocity = vel.xyz;
-				opacity = pos.w;
+        opacity = pos.w;
 
         vec3 outputPos = vPosition;
         if(position.z == 1.0) {
           outputPos -= vVelocity;
         }
 
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( outputPos, 1.0 );
-			}
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( outputPos, 1.0 );
+      }
       `,
       fragmentShader: `
-			varying vec3 vPosition;
-			varying float opacity;
-			void main() {
-				if ( opacity <= 0.0 ) discard;
-				gl_FragColor = vec4( vec3(vPosition), opacity );
-			}
+      varying vec3 vPosition;
+      varying float opacity;
+      void main() {
+        if ( opacity <= 0.0 ) discard;
+        gl_FragColor = vec4( vec3(0.8) + vec3(0,1.0,0)*opacity, opacity );
+      }
       `,
       blending: THREE.AdditiveBlending,
       transparent: true
     });
 
     let system = new THREE.LineSegments(geometry, material);
+    system.frustumCulled = false;
 
     system.positions = posvelTarget;
     system.positionsFlip = posvelTarget.clone();
 
     let origins = new Float32Array(size*size*4);
-    for (var i = 0; i < origins.length; i++) {
-      origins[i] = Math.random()*1-0.5;
+    for (var i = 0; i < origins.length; i+=8) {
+      // position
+      origins[i] = Math.random()*1-0.5 + target.x;
+      origins[i+1] = Math.random()*1-0.5 + target.y;
+      origins[i+2] = Math.random()*1-0.5 + target.z;
+      origins[i+3] = Math.random();
+
+      // velocity
+      origins[i+4] = Math.random()*1-0.5;
+      origins[i+5] = Math.random()*1-0.5;
+      origins[i+6] = Math.random()*1-0.5;
+      origins[i+7] = 1.0;
     }
     let originsTexture = new THREE.DataTexture(origins, size, size, THREE.RGBAFormat, THREE.FloatType);
     originsTexture.minFilter = THREE.NearestFilter;
-		originsTexture.magFilter = THREE.NearestFilter;
+    originsTexture.magFilter = THREE.NearestFilter;
     originsTexture.needsUpdate = true;
 
     posvelTarget.texture = originsTexture;
@@ -90,7 +101,7 @@ module.exports = {
     system.simulateShader = new THREE.ShaderMaterial({
       uniforms: {
         positions: {type: 't', value: posvelTarget},
-        target: {type:'3f', value: target},
+        target: {type:'v3', value: target},
         time: {type:'f', value: 0},
         size: {type: 'f', value: size}
       },
@@ -113,16 +124,24 @@ module.exports = {
         vec2 delta = vec2(1.0 / size);
         vec4 pos = texture2D(positions, vUv);
         vec4 vel = texture2D(positions, vUv + delta * vec2(1.0, 0.0));
-        if(mod((gl_FragCoord.x-0.5), 2.0) != 0.0) {
-          // if this is an odd pixel, set it to the "old" value
-          pos = texture2D(positions, vUv + delta * vec2(1.0, 0.0));
-          gl_FragColor = pos;
+        if(mod((gl_FragCoord.x-0.5), 2.0) == 1.0) {
+          pos = texture2D(positions, vUv + delta * vec2(-1.0, 0.0));
+          vel = texture2D(positions, vUv);
+
+          // velocity update
+          vec4 acc = vec4(vec3(target - pos.xyz), 0.0);
+          vel += vec4(acc.xyz * 10.0 / 60.0, 0.0);
+          vel *= 0.99;
+          // end velocity update
+
+          gl_FragColor = vel;
           return;
         }
 
-        // otherwise, move the forward point towards the target
-        pos += vec4(vel.xyz, 0.0);
-        vel += vec4((target - pos.xyz) / 2.0, 0.0);
+        // position update
+        pos += vec4(vel.xyz, 0.0) / 60.0;
+        pos.w -= 1.0/60.0;
+        // end position update
 
         gl_FragColor = pos;
       }

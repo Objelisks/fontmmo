@@ -28,12 +28,22 @@ particleEngine.add = function(system) {
   this.systemIndex += 1;
   this.systems[system.index] = system;
   this.scene.add(system);
+  return system.index;
 };
+
+particleEngine.remove = function(system) {
+  delete this.systems[system.index];
+  this.scene.remove(system);
+}
 
 particleEngine.simulate = function() {
   Object.keys(this.systems).forEach((key) => {
     let system = this.systems[key];
     if(system.simulateShader) {
+      if(system.updateSimulationUniforms) {
+        //system.updateSimulationUniforms();
+      }
+      //console.log(system.simulateShader.uniforms.target.value);
       system.simulateShader.uniforms.time.value += 0.016;
 
       gpgpu.pass(system.simulateShader, system.positionsFlip);

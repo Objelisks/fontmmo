@@ -26,8 +26,11 @@ aspect.first = {
   client_predict: function(actor) {
     console.log('blink start');
     // spawn starting particles
-    actor.blinkParticlesStart = particles.teleport.create(32, actor.position);
-    state.chunk.particles.add(actor.blinkParticlesStart);
+    let p = particles.teleport.create(32, actor.position);
+    state.chunk.particles.add(p);
+    setTimeout(() => {
+      state.chunk.particles.remove(p);
+    }, 1000);
 
     // make character invisible
     actor.visible = false;
@@ -40,8 +43,6 @@ aspect.first = {
     // move character to new position
     actor.position.set(data.x, actor.position.y, data.z);
     // update first particle set target
-    //actor.blinkParticlesStart.target.copy(actor.position);
-    delete actor.blinkParticlesStart;
     setTimeout(() => {
       // make character visible
       actor.visible = true;
@@ -49,6 +50,9 @@ aspect.first = {
       // more particles at new location
       let p = particles.teleport.create(32, actor.position);
       state.chunk.particles.add(p);
+      setTimeout(() => {
+        state.chunk.particles.remove(p);
+      }, 1000);
     }, 1000);
   },
   server: function(actor) {
