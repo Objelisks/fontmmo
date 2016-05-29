@@ -40,10 +40,6 @@ particleEngine.simulate = function() {
   Object.keys(this.systems).forEach((key) => {
     let system = this.systems[key];
     if(system.simulateShader) {
-      if(system.updateSimulationUniforms) {
-        //system.updateSimulationUniforms();
-      }
-      //console.log(system.simulateShader.uniforms.target.value);
       system.simulateShader.uniforms.time.value += 0.016;
 
       gpgpu.pass(system.simulateShader, system.positionsFlip);
