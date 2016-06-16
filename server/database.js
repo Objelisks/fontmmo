@@ -12,16 +12,16 @@ module.exports.start = function() {
   });
 
   let promise = new Promise((resolve, reject) => {
-      let connectCallback = (err, db) => {
+      let connectCallback = function connectCallback(err, db) {
         if(err !== null) {
           console.log('db connect: retrying...');
-          setTimeout(mongoClient.connect(mongoUrl, connectCallback), 100);
+          setTimeout(() => mongoClient.connect(mongoUrl, connectCallback), 100);
         }
         console.log('db connect: success');
         module.exports.db = db;
         resolve();
       };
-      setTimeout(mongoClient.connect(mongoUrl, connectCallback), 100);
+      setTimeout(() => mongoClient.connect(mongoUrl, connectCallback), 100);
   });
 
   return promise;

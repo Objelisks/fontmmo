@@ -9,6 +9,7 @@ const fileserve = require('./fileserve.js');
 const sockets = require('./sockets.js');
 
 console.time('startup');
+console.log('starting');
 database.start().then(() => {
   fileserve.start();
   sockets.start();
@@ -61,4 +62,6 @@ database.start().then(() => {
     });
   }, 66); // 1000/15
   console.timeEnd('startup');
+}).catch((err) => {
+  console.log('promise error: ', err);
 });
