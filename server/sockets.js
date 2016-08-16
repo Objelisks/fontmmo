@@ -7,7 +7,7 @@ const fileserve = require('./fileserve.js');
 const secret = require('./secret.js');
 
 module.exports.start = function() {
-  let io = require('socket.io').listen(fileserve.server);
+  let io = require('socket.io')(fileserve.server, {origins:"http://localhost:* http://fontmmo-objelisks.c9users.io:* https://localhost:* https://fontmmo-objelisks.c9users.io:*"});
 
   module.exports.io = io;
 

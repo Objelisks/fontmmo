@@ -1,12 +1,15 @@
 const crypto = require('crypto');
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const bodyParser = require('body-parser');
 const database = require('./database.js');
 const secret = require('./secret.js');
+const util = require('util');
 
+let useHttps = false;
 let httpsOpt = {
   key: fs.readFileSync('./server/ssl/https.key'),
   cert: fs.readFileSync('./server/ssl/https.crt')
@@ -116,11 +119,28 @@ module.exports.start = function() {
 
   console.log('fileserver:', 'starting');
 
+if(useHttps) {
   module.exports.server = https.createServer(httpsOpt, app)
     .on('error', (err) => {
       console.log('fileserver:', err);
     })
+    .on('clientError', (err) => {
+      console.log('fileserver:', util.inspect(err));
+    })
     .listen(8080, () => {
       console.log('fileserver:', 'success');
     });
+} else {
+  module.exports.server = http.createServer(app)
+  .on('error', (err) => {
+    console.log('fileserver:', err);
+  })
+  .on('clientError', (err) => {
+    console.log('fileserver:', util.inspect(err));
+  })
+  .listen(8080, () => {
+    console.log('fileserver:', 'success');
+  });
+}
+
 }

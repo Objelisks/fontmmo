@@ -1,4 +1,6 @@
 /* global THREE */
+console.log('begin');
+
 const state = require('../game/state.js');
 const screens = require('../game/screens/screens.js');
 

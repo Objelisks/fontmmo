@@ -29,5 +29,6 @@ setTimeout(() => {
 function doThing(db) {
   db.createCollection('users', (err, result) => {
     result.createIndex({username: 1});
+    console.log('done');
   });
 };
